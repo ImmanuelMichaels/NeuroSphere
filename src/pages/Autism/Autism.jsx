@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Volume2, Users, Zap, Battery, Shield, Heart, ChevronRight } from 'lucide-react';
-import './autism.css';
+import './Autism.css';
 
 const Autism = () => {
     const [energy, setEnergy] = useState(60);
