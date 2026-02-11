@@ -1,0 +1,171 @@
+.navbar {
+  /* Colors & Borders */
+  background-color: #ffffff;       
+  border-bottom: 1px solid #e2e8f0;    
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
+  
+  width: 100%;
+  position: sticky; 
+  top: 0;
+  z-index: 50;
+}
+
+.container-custom {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; 
+  
+  /* Spacing */
+  padding-left: 1.5rem;  
+  padding-right: 1.5rem; 
+  padding-top: 1rem;     
+  padding-bottom: 1rem;  
+  
+  /* Sizing & Centering */
+  /* max-width: 1280px;      */
+  margin-left: auto;     
+  margin-right: auto; 
+  width: 100%;
+}
+
+/* Optional: Adjust for mobile screens */
+@media (max-width: 640px) {
+  .container-custom {
+    padding: 0.75rem 1rem;
+  }
+}
+
+
+/* Logo Wrapper */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; 
+}
+
+.logo-box {
+  width: 2rem;               
+  height: 2rem;             
+  border-radius: 0.5rem;    
+  background-color: #0d9488; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The Brain Icon inside the box */
+.logo-box svg {
+  color: #ffffff;
+  width: 1.25rem;            
+  height: 1.25rem;           
+}
+
+/* Brand Text */
+.logo-text {
+  font-family: inherit;      
+  font-weight: 700;          
+  font-size: 1.25rem;        
+  letter-spacing: -0.025em;  
+  color: #0f172a;           
+}
+
+.logo-text .accent {
+  color: #0d9488;   
+}
+
+/* Nav List Block */
+.nav-list {
+  display: flex;         
+  align-items: center;      
+  gap: 1rem;            
+  list-style: none;      
+  margin: 0;
+  padding: 0;
+}
+
+/* Base Link Style */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;         
+  padding: 0.5rem 0.75rem; 
+  border-radius: 0.5rem;   
+  font-size: 0.875rem;    
+  font-weight: 500;       
+  color: #64748b;          
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+
+.nav-link:not(.active):hover {
+  color: #0f172a;          
+  background-color: #f8fafc; 
+}
+
+/* Active State */
+.nav-link.active {
+  background-color: #f0fdfa;
+  color: #0f766e;        
+  font-weight: 600;      
+}
+
+/* Icon Styles */
+.nav-link .nav-icon {
+  width: 1rem;            
+  height: 1rem;            
+  color: #94a3b8;        
+  transition: color 0.2s;
+}
+
+/* Change Icon color when parent is active */
+.nav-link.active .nav-icon {
+  color: #0d9488;         
+}
+
+/* Container for the buttons */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem; 
+}
+
+/* Sign In Button */
+.btn-signin {
+  font-size: 0.875rem; 
+  font-weight: 500;    /* font-medium */
+  color: #64748b;     /* text-slate-500 */
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-signin:hover {
+  color: #0f172a;     /* hover:text-slate-900 */
+}
+
+/* Get Started Button */
+.btn-primary {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #0d9488; /* teal-600 */
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;    /* rounded-lg */
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  /* shadow-md combined with shadow-teal-500/20 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+              0 2px 4px -2px rgba(0, 0, 0, 0.1),
+              0 10px 15px -3px rgba(20, 184, 166, 0.2); 
+}
+
+.btn-primary:hover {
+  background-color: #0f766e; /* darken slightly on hover */
+  transform: translateY(-1px); /* subtle lift */
+}

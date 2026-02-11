@@ -1,0 +1,303 @@
+.app-root {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #f5f3ef 0%, #e8e5df 100%);
+  background-attachment: fixed; 
+  font-family: 'Atkinson Hyperlegible', 'Lexend', system-ui, sans-serif;
+  color: #1a202c; 
+}
+.main-viewport-container {
+  max-width: 72rem;      
+  margin-left: auto;    
+  margin-right: auto;
+  padding-left: 1.5rem;  
+  padding-right: 1.5rem;
+  padding-top: 3rem;     
+  padding-bottom: 3rem;
+}
+.page-header-container {
+  margin-bottom: 2.5rem;    
+}
+
+.page-title {
+  font-size: 1.875rem;   
+  font-weight: 600;
+  margin-bottom: 0.75rem; 
+  color: #4a5568;
+}
+
+.page-subtitle {
+  font-size: 1rem;        
+  color: #718096;
+  line-height: 1.5;        
+}
+.metric-card {
+  padding: 1.5rem;        
+  border-radius: 1rem;      
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  color: #9ca3af;
+  font-size: 0.875rem;     
+  font-weight: 500;
+  margin-bottom: 0.5rem;  
+}
+
+.metric-value {
+  font-size: 1.875rem;   
+  font-weight: 700;       
+  color: #4a5568;
+}
+.card-header {
+  background: #fafaf8;
+  border: 2px solid #d4cfc4;
+  gap: 1rem; /* Space between label/value and icon */
+    
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Pushes content left and icon right */
+  width: 100%;
+}
+
+.stat-label {
+  color: var(--color-muted);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px; /* mb-2 */
+  margin-top: 0;
+  font-family: var(--font-main);
+}
+
+.stat-value {
+  color: var(--color-sage);
+  font-size: 1.875rem; /* 30px / text-3xl */
+  font-weight: 700;    /* font-bold */
+  margin: 0;
+  font-family: var(--font-main);
+}
+
+.stat-icon {
+  width: 32px;        /* w-8 */
+  height: 32px;       /* h-8 */
+  color: var(--color-sage);
+  opacity: 0.6;       /* Softened background icon effect */
+}
+
+@media (max-width: 300px) {
+  .stat-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.card-container {
+  padding: 1.5rem; /* 24px */
+  border-radius: 1rem; /* 16px */
+  border: 2px solid #d4cfc4;
+  background-color: #fafaf8;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.card-header-diabetic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.label-muted {
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px; /* mb-2 */
+}
+
+.value-diabetic {
+  color: #d4a574; /* Ochre accent */
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 700;
+  margin: 0;
+}
+
+.icon-diabetic {
+  width: 32px;
+  height: 32px;
+  color: #d4a574;
+  opacity: 0.6;
+}
+
+.sidebar-container > * + * {
+  margin-top: 1rem; /* 16px */
+}
+
+/* Container Card */
+.adherence-card {
+  padding: 24px; /* p-6 */
+  border-radius: 16px; /* rounded-2xl */
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* shadow-sm */
+  box-sizing: border-box;
+}
+
+/* Flexbox Header */
+.card-flex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Label (Avg. Adherence) */
+.label-text {
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500; /* font-medium */
+  margin-bottom: 8px; /* mb-2 */
+  margin-top: 0;
+}
+
+/* Percentage Value */
+.value-text {
+  color: #6b8e7f;
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 700; /* font-bold */
+  margin: 0;
+}
+
+/* Icon (CheckCircle) */
+.status-icon {
+  width: 32px; /* w-8 */
+  height: 32px; /* h-8 */
+  color: #6b8e7f;
+  opacity: 0.6;
+}
+
+/* Container to hold the input and absolute icon */
+.search-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+}
+
+/* The Magnifying Glass Icon */
+.search-icon {
+  position: absolute;
+  left: 16px;      /* left-4 (4 * 4px) */
+  top: 12px;       /* top-3 (3 * 4px) */
+  width: 20px;     /* w-5 */
+  height: 20px;    /* h-5 */
+  color: #9ca3af;
+  pointer-events: none; /* Icon won't block clicks to the input */
+}
+
+/* The Input Field */
+.search-input {
+  width: 100%;
+  padding-top: 8px;     /* py-2 */
+  padding-bottom: 8px;
+  padding-right: 16px;  /* pr-4 */
+  padding-left: 48px;   /* pl-12: Leaves room for the icon */
+  border-radius: 8px;   /* rounded-lg */
+  border: 1px solid #e2e8f0; /* border-slate-200 */
+  background-color: #fafaf8;
+  font-size: 16px;      /* Prevents iOS auto-zoom on focus */
+  outline: none;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+/* focus:ring-2 focus:ring-teal-500 */
+.search-input:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.5);
+}
+
+
+.utility-well {
+  padding: 1rem;            /* p-4 */
+  border-radius: 0.5rem;    /* rounded-lg */
+  background-color: #fafaf8;
+  border: 1px solid #d4cfc4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;             /* Space between icon and text */
+}
+
+/* Perfect for stacking inside a larger card */
+.utility-well + .utility-well {
+  margin-top: 0.75rem;
+}
+
+.horizontal-pair {
+  display: flex;
+  align-items: center;  
+  gap: 0.5rem;         
+}
+
+.vertical-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; 
+}
+.btn-primary {
+  background-color: #6b8e7f;
+  color: #ffffff;
+  border-radius: 0.75rem; /* rounded-xl consistency */
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #5a7a6c;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: scale(0.98); /* Tactile "squish" feedback */
+}
+
+.btn-secondary {
+  background-color: #f0ebe5; /* Matches your reference badge */
+  color: #4a5568;            /* Slate 700 for high legibility */
+  border: 1px solid #e8dfd0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;               /* Space between icon and text */
+}
+
+.btn-secondary:hover {
+  background-color: #e8e2d9;
+  border-color: #d4cfc4;
+}
+
+.btn-danger {
+  background-color: #fff1f2; /* Soft Rose background */
+  color: #e11d48;            /* High-contrast Red */
+  border: 1px solid #fecdd3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: #ffe4e6;
+  border-color: #fb7185;
+  color: #be123c;
+}

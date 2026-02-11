@@ -1,0 +1,679 @@
+.app-root {
+  /* Ensure the background covers the full device height */
+  min-height: 100vh;
+  
+  /* A soft, oatmeal-toned gradient to reduce blue light glare */
+  background: linear-gradient(135deg, #f5f3ef 0%, #e8e5df 100%);
+  
+  /* Accessibility-first typography stack */
+  font-family: 'Atkinson Hyperlegible', 'Lexend', system-ui, -apple-system, sans-serif;
+  
+  /* Soft contrast text for readability */
+  color: #334155; 
+  
+  /* Smooths font rendering on MacOS/iOS */
+  -webkit-font-smoothing: antialiased;
+}
+
+
+.main-layout-wrapper {
+  /* Restrict content width to ~1152px */
+  max-width: 72rem; 
+  
+  /* Center the container horizontally */
+  margin-left: auto;
+  margin-right: auto;
+  
+  /* Vertical and Horizontal Padding */
+  padding-left: 1.5rem;   /* px-6 */
+  padding-right: 1.5rem;
+  padding-top: 3rem;      /* py-12 */
+  padding-bottom: 3rem;
+}
+
+/* Optional: Adjust padding for smaller mobile screens */
+@media (max-width: 640px) {
+  .main-layout-wrapper {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1.5rem;
+  }
+}
+
+
+.kpi-grid {
+  display: grid;
+  /* Mobile: 1 column */
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;            /* gap-4 (16px) */
+  margin-bottom: 2rem;  /* mb-8 (32px) */
+}
+
+/* Tablet/Desktop: 4 columns (768px and up) */
+@media (min-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Optional: Styling for the children inside the grid */
+.kpi-card {
+  background: white;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+.dashboard-card {
+  padding: 1.5rem;          /* p-6 */
+  border-radius: 1rem;      /* rounded-2xl (approx 16px) */
+  
+  /* Background: A very light, warm off-white */
+  background-color: #fafaf8;
+  
+  /* Border: A soft, clay-toned "oatmeal" color */
+  border: 2px solid #d4cfc4;
+  
+  /* Shadow: A very subtle lift to differentiate from the gradient background */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  
+  /* Ensures any inner content respects the rounded corners */
+  overflow: hidden;
+}
+
+
+.flex-between {
+  display: flex;
+  /* Push items to the far left and far right */
+  justify-content: space-between; 
+  /* Vertically center items of different heights */
+  align-items: center;            
+  /* Ensures items don't touch if the screen shrinks */
+  gap: 1rem;                      
+}
+
+.stat-card-body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.stat-label {
+  color: #9ca3af;       /* Gray-400 */
+  font-size: 0.875rem;  /* 14px */
+  font-weight: 500;     /* font-medium */
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.stat-value {
+  font-size: 1.875rem;  /* text-3xl */
+  font-weight: 700;     /* font-bold */
+  color: #6b8e7f;       /* Sage Green */
+  line-height: 1;
+}
+
+.stat-unit {
+  color: #9ca3af;       /* Gray-400 */
+  font-size: 0.75rem;   /* 12px */
+  margin-top: 0.25rem;  /* mt-1 */
+}
+
+.stat-icon {
+  width: 2rem;          /* w-8 */
+  height: 2rem;         /* h-8 */
+  color: #6b8e7f;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+
+
+.card-kpi-energy {
+  padding: 1.5rem;          /* p-6 */
+  border-radius: 1rem;      /* rounded-2xl */
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+}
+
+/* Specific text color for Energy metrics */
+.text-energy {
+  color: #d4a574;
+}
+
+.icon-energy {
+  width: 2rem;
+  height: 2rem;
+  color: #d4a574;
+  opacity: 0.6;
+}
+
+/* Specific text color for Stress metrics */
+.text-stress {
+  color: #c87355;
+}
+
+.icon-stress {
+  width: 2rem;
+  height: 2rem;
+  color: #c87355;
+  opacity: 0.6;
+}
+
+/* Reusing the base card style from Energy Level for consistency */
+.card-kpi-base {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Base card style remains consistent */
+.card-kpi-trend {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Modifier classes for trend states */
+.trend-improving { color: #6b8e7f; } /* Sage Green */
+.trend-declining { color: #c87355; } /* Terracotta */
+.trend-stable    { color: #d4a574; } /* Sand */
+
+.trend-text {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+
+.search-wrapper {
+  position: relative; /* Context for absolute positioning */
+  flex: 1 1 0%;      /* flex-1 */
+}
+
+.search-icon-overlay {
+  position: absolute;
+  left: 1rem;       /* left-4 */
+  top: 0.75rem;     /* top-3 */
+  width: 1.25rem;   /* w-5 */
+  height: 1.25rem;  /* h-5 */
+  color: #9ca3af;
+  pointer-events: none; 
+}
+
+.search-input-field {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem; /* pl-12 for icon clearance */
+  border-radius: 0.75rem;            /* rounded-xl */
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  color: #4a5568;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.search-input-field:focus {
+  border-color: #14b8a6; /* focus:border-teal-500 */
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
+}
+
+
+.control-bar {
+  display: flex;
+  flex-direction: column; /* flex-col */
+  gap: 1rem;              /* gap-4 (16px) */
+  margin-bottom: 2rem;    /* mb-8 (32px) */
+}
+
+/* Large screens (1024px and up) */
+@media (min-width: 1024px) {
+  .control-bar {
+    flex-direction: row;  /* lg:flex-row */
+    align-items: center;  /* Ensures search and buttons align vertically */
+  }
+}
+
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap; /* flex-wrap */
+  gap: 0.5rem;      /* gap-2 */
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+/* Variant: Secondary (Inactive) */
+.filter-btn-secondary {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+
+/* Variant: Primary (Active) */
+.filter-btn-primary {
+  background-color: #14b8a6; /* Teal-500 */
+  color: white;
+  border-color: #14b8a6;
+  box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.2);
+}
+
+
+.card-spotlight {
+  padding: 1.5rem;          /* p-6 */
+  margin-bottom: 2rem;      /* mb-8 */
+  border-radius: 1rem;      /* rounded-2xl */
+  
+  /* Subtle bottom-right gradient for a premium look */
+  background: linear-gradient(135deg, #fafaf8 0%, #f5f3ef 100%);
+  
+  /* Defined border to anchor the card against the oatmeal background */
+  border: 2px solid #d4cfc4;
+  
+  /* Soft shadow for depth */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem; 
+}
+
+.form-title {
+  font-size: 1.5rem;     
+  font-weight: 600;      
+  color: #4a5568;        
+}
+
+.close-button {
+  padding: 0.2rem;        
+  border-radius: 0.5rem;  
+  transition: background-color 0.2s ease;
+  color: red; 
+  border: none;       
+}
+
+.close-button:hover {
+  background-color: #e6bebe52;
+}
+
+.input-grid {
+  display: grid;
+  /* Mobile: Stacked inputs */
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem; /* gap-4 */
+}
+
+/* Medium screens (768px and up) */
+@media (min-width: 768px) {
+  .input-grid {
+    /* Side-by-side inputs */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.form-input-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  flex-direction: row;
+  font-size: 0.875rem; 
+  font-weight: 500;    
+  color: #4a5568;
+  align-items: center;
+  margin-bottom: 0.5rem; 
+}
+
+.date-input {
+  width: 100%;
+  padding: 0.75rem 1rem; 
+  border-radius: 0.75rem; 
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.date-input:focus {
+  border-color: #14b8a6; /* focus:border-teal-500 */
+}
+
+
+.time-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  color: #4a5568;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+/* Customizing the native clock icon behavior in some browsers */
+.time-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(40%) sepia(10%) saturate(1000%) hue-rotate(180deg);
+  opacity: 0.6;
+}
+
+.empty-state-card {
+  text-align: center;
+  padding: 4rem 1.5rem;   /* py-16 px-6 */
+  background: #fafaf8;
+  border: 2px dashed #d4cfc4; /* Dashed border suggests a 'placeholder' */
+  border-radius: 1.5rem;
+}
+
+.empty-state-icon {
+  width: 4rem;            /* w-16 */
+  height: 4rem;           /* h-16 */
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 1rem;    /* mb-4 */
+  color: #d4cfc4;         /* Soft beige muted icon */
+}
+
+.empty-state-title {
+  font-size: 1.25rem;     /* text-xl */
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-subtext {
+  color: #718096;
+  font-size: 1rem;
+}
+
+
+.entry-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;            /* gap-4 */
+  margin-bottom: 0.75rem; /* mb-3 */
+}
+
+.mood-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;         /* gap-3 */
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;  /* mb-2 */
+}
+
+.meta-info-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;            /* gap-4 */
+  flex-wrap: wrap;
+  font-size: 0.875rem;  /* text-sm */
+  color: #718096;
+}
+
+.card-header-flex {
+  display: flex;
+  align-items: flex-start;    /* items-start */
+  justify-content: space-between; /* justify-between */
+  gap: 1rem;                  /* gap-4 */
+}
+
+.content-area {
+  flex: 1 1 0%;               /* Ensures the text takes up all available middle space */
+}
+
+.action-area {
+  flex-shrink: 0;             /* Prevents buttons from being squished */
+  display: flex;
+  gap: 0.5rem;
+}
+
+
+.metadata-label {
+  font-size: 0.75rem;     /* text-xs */
+  font-weight: 700;       /* font-bold */
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;  /* mb-2 */
+}
+
+.metadata-value-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;            /* gap-2 */
+}
+
+.metadata-icon {
+  width: 1.25rem;         /* w-5 */
+  height: 1.25rem;        /* h-5 */
+  color: #718096;
+}
+
+
+.chip-container {
+  display: flex;
+  flex-wrap: wrap; /* flex-wrap */
+  gap: 0.5rem;      /* gap-2 */
+}
+
+.chip {
+  padding: 0.25rem 0.75rem;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px; /* The "Pill" shape */
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+/* ============================================= */
+
+.meta-info-row {
+  display: flex;
+  flex-wrap: wrap; 
+  align-items: center;     
+  gap: 2rem;             
+  color: #718096;        
+  font-size: 0.875rem; 
+  padding-top: .25rem;  
+}
+
+.mood-score-pill {
+  padding: 0.10rem 0.50rem;
+  border-radius: 5px;
+  border: none;
+}
+
+.time-flex {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem; /* Small gap between icon and text */
+}
+/* ============================================== */
+
+.activity-box {
+  padding: 2rem 1.5rem; /* px-6 py-4 */
+}
+
+.doings-flex {
+  display: flex;
+  flex-wrap: wrap; /* flex-wrap */
+  gap: 0.5rem;      /* gap-2 */
+  padding-top: 0.2rem;
+}
+
+.doings-inner {
+  padding: 0.25rem 0.75rem; /* px-3 py-1 */
+  border-radius: 9999px;    /* rounded-full */
+  background-color: #e8f0ed;
+  color: #6b8e7f;
+  font-size: 0.875rem;      /* text-sm */
+  font-weight: 500;         /* font-medium */
+}
+
+.note {
+  background: #fafaf8;
+  border: 2px solid #d4cfc4;
+  border-radius: 0.2rem;      /* rounded-xl */
+
+}
+.note p {
+  padding: 0.50rem;
+}
+
+/* ============================================= */
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafaf8;
+  border: 2px solid #d4cfc4;
+  color: #4a5568;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  padding: 0.5rem .5rem; /* py-2 px-4 */
+}
+
+.btn-secondary:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px); /* Subtle lift effect */
+}
+
+
+.btn-flex-container {
+  display: flex;
+  flex-direction: row; /* Default */
+  gap: 0.5rem;          /* 8px */
+  align-items: center; /* Often added to vertically center content */
+}
+
+.btn-child {
+  padding: .2rem .2rem; /* py-2 px-2 */
+  border-radius: 0.5rem; /* rounded-lg */
+  border: 1px solid #3341555e;
+}
+
+/* =============================================== */
+.button-inner {
+  display: flex;
+  align-items: center; /* Vertically aligns icon and text */
+  justify-content: center;
+}
+
+.icon-style {
+  width: 1rem;       /* w-4 */
+  height: 1rem;      /* h-4 */
+  margin-right: 0.5rem; /* mr-2 */
+  flex-shrink: 0;    /* Prevents icon from squishing on small buttons */
+}
+
+
+/* Container to handle vertical spacing (space-y-2) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* 8px */
+}
+
+/* The label styling including the icon alignment */
+.this-form-label {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: #4a5568; /* Slate-700 */
+  font-size: 0.875rem; /* 14px */
+}
+
+/* Margin for the icon inside the label (mr-2) */
+.form-label svg {
+  margin-right: 0.5rem; /* 8px */
+}
+
+/* The actual input field styling */
+.date-input {
+  width: 100%;
+  padding: 0.75rem 1rem; /* py-3 px-4 */
+  border-radius: 0.75rem; /* rounded-xl (12px) */
+  border: 2px solid #d4cfc4;
+  background-color: #fafaf8;
+  font-size: 1rem;
+  color: #2d3748;
+  transition: border-color 0.2s ease-in-out;
+  outline: none; /* focus:outline-none */
+}
+
+/* Interactive focus state */
+.date-input:focus {
+  border-color: #14b8a6; /* teal-500 */
+}
+
+/* ============================================= */
+
+.this-form-group {
+  display: flex;
+  gap: 0.5rem; 
+  border-radius: 5px;
+  padding: 5px;
+  align-items: center;
+}
+.form-label-inner {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: #4a5568; /* Slate-700 */
+  font-size: 0.875rem; /* 14px */
+  gap: 10px;
+}
+.w-full {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: #bbe7d4a6;
+}
+/* Target the specific input class */
+input[type="time" i]
+.edt-btnn-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  font-family: 'Times New Roman', Times, serif;
+  border: none;
+}
+.edt-btnn-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  font-family: 'Times New Roman', Times, serif;
+}
+.edt-cancel {
+  border: none;
+  padding: 10px 15px;
+  border: #2d37487a 1px solid;
+  border-radius: 5px;
+}

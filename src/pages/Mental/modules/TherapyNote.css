@@ -1,0 +1,293 @@
+.app-container {
+  /* min-h-screen: Ensures background covers the whole page even if content is short */
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg, 
+    #f5f3ef 0%, 
+    #e8e5df 100%
+  );
+  transition: background 0.5s ease;
+  padding: 1rem 1rem;
+}
+
+.main-layout-container {
+  /* max-w-6xl */
+  max-width: 72rem; /* 1152px */
+  
+  /* mx-auto */
+  margin-left: auto;
+  margin-right: auto;
+  
+  /* px-6 (Horizontal padding) */
+  padding-left: 1.5rem; /* 24px */
+  padding-right: 1.5rem; /* 24px */
+  
+  /* py-12 (Vertical padding) */
+  padding-top: 3rem; /* 48px */
+  padding-bottom: 3rem; /* 48px */
+}
+
+
+/* Header Container */
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+/* Section Title */
+.section-title {
+  font-size: 1.5rem;      /* text-2xl (24px) */
+  font-weight: 600;       /* font-semibold */
+  color: #1e293b;         /* Slate-800 for high contrast */
+  margin-bottom: 0.25rem; /* Tight spacing between title and subtitle */
+}
+
+/* Section Subtitle */
+.section-subtitle {
+  font-size: 0.875rem;    /* text-sm (14px) */
+  color: #475569;         /* Slate-600 */
+  line-height: 1.25rem;
+}
+
+
+/* Toolbar Container */
+.action-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.50rem; 
+  padding-top: 1rem;
+  margin-bottom: 1rem; 
+}
+
+/* Search Wrapper & Icon Positioning */
+.search-container {
+  position: relative;
+  flex: 1; /* flex-1: takes up remaining space */
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem; /* left-3 */
+  top: 50%;
+  transform: translateY(-50%); /* Centers icon vertically */
+  color: #94a3b8; /* text-slate-400 */
+  pointer-events: none; /* Ensures clicks go through to input */
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem; /* pl-10 (40px) to clear the icon */
+  border-radius: 0.5rem; /* rounded-lg */
+  border: 1px solid #e2e8f0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #14b8a6; /* Match your teal theme */
+}
+
+/* Base Button Style */
+.btn-note {
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: 1px solid transparent;
+  gap: 5px;
+}
+.btn-duty {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    /* border: 1px solid transparent; */
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border-radius: 5px;
+    border: 2px solid #e2e8f0;
+}
+
+
+/* card */
+.card {
+  /* mb-6 */
+  margin-bottom: 1.5rem; /* 24px */
+  
+  /* The "Journal" Look */
+  background-color: #ffffff;
+  border-radius: 1rem; /* rounded-2xl for a friendly feel */
+  border: 1px solid #e8e5df; /* Subtle border that matches your background */
+  
+  /* The Shadow: Keep it soft and "airy" */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.03);
+              
+  /* Inner Padding: Standardizes the look of all cards */
+  padding: 1.5rem; /* 24px */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px); /* Slight lift on hover */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.responsive-grid {
+  display: grid;
+  /* Default: 1 column for mobile */
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem; /* 16px */
+}
+
+/* Medium screens and up (md: breakpoint) */
+@media (min-width: 768px) {
+  .responsive-grid {
+    /* Switch to 3 columns */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.form-label {
+  font-size: 0.875rem;     /* text-sm */
+  line-height: 1.25rem;    /* standard for text-sm */
+  font-weight: 500;        /* Medium weight makes small text crisper */
+  color: #475569;          /* Slate-600: subtle but high contrast */
+  display: block;          /* Ensures it stays above the input */
+  margin-bottom: 0.25rem;  /* Tight spacing to the field */
+}
+
+/* Mobile: Occupies its natural 1-column spot */
+.full-width-feature {
+  grid-column: span 1 / span 1;
+}
+
+/* Tablet/Desktop: Spans the entire row */
+@media (min-width: 768px) {
+  .full-width-feature {
+    grid-column: span 3 / span 3;
+  }
+}
+
+.form-actions {
+  margin-top: 1rem;      /* mt-4 */
+  display: flex;         /* flex */
+  gap: 0.5rem;           /* gap-2 (8px) */
+  align-items: center;   /* Keeps buttons perfectly leveled */
+}
+
+/* Optional: Pushing buttons to the right (common in modals) */
+.form-actions-end {
+  justify-content: flex-end;
+}
+
+
+
+/* The Modern Approach (Recommended) */
+.stack-y-4 {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* The Traditional Approach (Matches Tailwind's logic) */
+.space-y-4 > * + * {
+  margin-top: 1rem; 
+}
+
+.note-card {
+  /* p-4 */
+  padding: 1rem;
+  
+  /* flex justify-between items-start */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  
+  /* Base Card Styling */
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e8e5df;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  margin-bottom: 1rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;     /* gap-3 (12px) */
+  margin-bottom: 0.5rem; /* mb-2 (8px) */
+}
+
+/* Ensure icons/emojis don't shrink */
+.card-header-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.note-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem; /* 4px spacing between lines */
+}
+
+.note-date {
+  font-size: 0.875rem;
+  color: #64748b; /* Slate-500 */
+}
+
+.note-author {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b; /* Slate-800 */
+}
+
+/* The Tag/Badge Style */
+.note-tag {
+  display: inline-block;
+  font-size: 0.75rem; /* text-xs */
+  padding: 0.25rem 0.5rem; /* py-1 px-2 */
+  border-radius: 4px;
+  background-color: #f1f5f9; /* bg-slate-100 */
+  color: #334155; /* text-slate-700 */
+  width: fit-content; /* Prevents the badge from stretching full width */
+}
+
+.note-body {
+  font-size: 0.875rem; /* 14px */
+  color: #334155;      /* slate-700 */
+  line-height: 1.5;    /* 21px - Essential for readability of multi-line text */
+  margin-bottom: 0.5rem; /* 8px */
+  
+  /* Optional: Prevents long words/URLs from breaking the layout */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+/* Add this class to show only 3 lines of text */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
+
+.note-actions-sidebar {
+  display: flex;
+  flex-direction: column; /* flex-col */
+  gap: 0.5rem;            /* gap-2 */
+  flex-shrink: 0;         /* Prevents buttons from squishing if text is long */
+}
+
+/* Ensure the buttons are perfectly square for icons */
+.note-actions-sidebar .btn {
+  padding: 0.5rem; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  color: #c87355;
+  background-color: #fef3f2;
+  border: 1px solid transparent;
+}
