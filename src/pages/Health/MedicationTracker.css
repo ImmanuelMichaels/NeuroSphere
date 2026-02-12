@@ -41,263 +41,231 @@
   flex-direction: column;
 }
 
-.metric-label {
-  color: #9ca3af;
-  font-size: 0.875rem;     
-  font-weight: 500;
-  margin-bottom: 0.5rem;  
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem; 
+  margin-bottom: 2rem; 
 }
 
-.metric-value {
-  font-size: 1.875rem;   
-  font-weight: 700;       
-  color: #4a5568;
-}
-.card-header {
-  background: #fafaf8;
-  border: 2px solid #d4cfc4;
-  gap: 1rem; /* Space between label/value and icon */
-    
-}
-
-.stat-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Pushes content left and icon right */
-  width: 100%;
-}
-
-.stat-label {
-  color: var(--color-muted);
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px; /* mb-2 */
-  margin-top: 0;
-  font-family: var(--font-main);
-}
-
-.stat-value {
-  color: var(--color-sage);
-  font-size: 1.875rem; /* 30px / text-3xl */
-  font-weight: 700;    /* font-bold */
-  margin: 0;
-  font-family: var(--font-main);
-}
-
-.stat-icon {
-  width: 32px;        /* w-8 */
-  height: 32px;       /* h-8 */
-  color: var(--color-sage);
-  opacity: 0.6;       /* Softened background icon effect */
-}
-
-@media (max-width: 300px) {
-  .stat-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+@media (min-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* grid-cols-2 */
   }
 }
 
-.card-container {
-  padding: 1.5rem; /* 24px */
-  border-radius: 1rem; /* 16px */
-  border: 2px solid #d4cfc4;
-  background-color: #fafaf8;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* grid-cols-4 */
+  }
 }
 
-.card-header-diabetic {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+.your-class-name {
+  padding-inline: 1.5rem; 
+  padding-block: 1.5rem; 
 }
 
-.label-muted {
-  color: #9ca3af;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px; /* mb-2 */
+.f-wed {
+  display: flex;          
+  justify-content: space-between; 
+  align-items: flex-start; 
 }
-
-.value-diabetic {
-  color: #d4a574; /* Ochre accent */
-  font-size: 1.875rem; /* text-3xl */
-  font-weight: 700;
-  margin: 0;
-}
-
-.icon-diabetic {
-  width: 32px;
-  height: 32px;
-  color: #d4a574;
-  opacity: 0.6;
-}
-
-.sidebar-container > * + * {
-  margin-top: 1rem; /* 16px */
-}
-
-/* Container Card */
-.adherence-card {
-  padding: 24px; /* p-6 */
-  border-radius: 16px; /* rounded-2xl */
-  background-color: #fafaf8;
-  border: 2px solid #d4cfc4;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* shadow-sm */
-  box-sizing: border-box;
-}
-
-/* Flexbox Header */
-.card-flex-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Label (Avg. Adherence) */
 .label-text {
-  color: #9ca3af;
-  font-size: 14px;
-  font-weight: 500; /* font-medium */
-  margin-bottom: 8px; /* mb-2 */
-  margin-top: 0;
+  font-size: 0.875rem;    
+  line-height: 1.25rem;  
+  font-weight: 500;       
+  margin-bottom: 0.25rem; 
+}
+.heading-large {
+  font-size: 2.25rem;      /* text-4xl */
+  line-height: 2.5rem;     /* Associated leading-10 */
+  font-weight: 700;        /* font-bold */
+  margin-bottom: 0.25rem;  /* mb-1 */
+}
+.flex-header {
+  display: flex;                
+  justify-content: space-between;
+  align-items: flex-start;     
 }
 
-/* Percentage Value */
-.value-text {
-  color: #6b8e7f;
-  font-size: 1.875rem; /* text-3xl */
-  font-weight: 700; /* font-bold */
-  margin: 0;
+.card-container {
+  margin-bottom: 2rem; /* mb-8 */
+  padding: 1.5rem;      /* p-6 */
 }
-
-/* Icon (CheckCircle) */
-.status-icon {
-  width: 32px; /* w-8 */
-  height: 32px; /* h-8 */
-  color: #6b8e7f;
-  opacity: 0.6;
+.section-title {
+  font-size: 1.25rem;      /* text-xl */
+  line-height: 1.75rem;     /* Associated leading-7 */
+  font-weight: 600;        /* font-semibold */
+  margin-bottom: 1rem;     /* mb-4 */
 }
-
-/* Container to hold the input and absolute icon */
-.search-container {
-  flex: 1;
-  position: relative;
-  width: 100%;
-}
-
-/* The Magnifying Glass Icon */
-.search-icon {
-  position: absolute;
-  left: 16px;      /* left-4 (4 * 4px) */
-  top: 12px;       /* top-3 (3 * 4px) */
-  width: 20px;     /* w-5 */
-  height: 20px;    /* h-5 */
-  color: #9ca3af;
-  pointer-events: none; /* Icon won't block clicks to the input */
-}
-
-/* The Input Field */
-.search-input {
-  width: 100%;
-  padding-top: 8px;     /* py-2 */
-  padding-bottom: 8px;
-  padding-right: 16px;  /* pr-4 */
-  padding-left: 48px;   /* pl-12: Leaves room for the icon */
-  border-radius: 8px;   /* rounded-lg */
-  border: 1px solid #e2e8f0; /* border-slate-200 */
-  background-color: #fafaf8;
-  font-size: 16px;      /* Prevents iOS auto-zoom on focus */
-  outline: none;
-  transition: box-shadow 0.2s, border-color 0.2s;
-}
-
-/* focus:ring-2 focus:ring-teal-500 */
-.search-input:focus {
-  border-color: #14b8a6;
-  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.5);
-}
-
-
-.utility-well {
-  padding: 1rem;            /* p-4 */
-  border-radius: 0.5rem;    /* rounded-lg */
-  background-color: #fafaf8;
-  border: 1px solid #d4cfc4;
+.stack-vertical {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;             /* Space between icon and text */
+  flex-direction: column;
+  gap: 0.75rem; /* Equivalent to space-y-3 */
 }
-
-/* Perfect for stacking inside a larger card */
-.utility-well + .utility-well {
+.stack-vertical > * + * {
   margin-top: 0.75rem;
 }
 
-.horizontal-pair {
+.list-item-container {
+  /* Layout: flex items-center justify-between */
   display: flex;
-  align-items: center;  
-  gap: 0.5rem;         
+  align-items: center;
+  justify-content: space-between;
+
+  /* Spacing: p-4 */
+  padding: 1rem;
+
+  /* Shape: rounded-xl */
+  border-radius: 0.75rem;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
-.vertical-stack {
+.just-item-grow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1 1 0%;
+}
+.dot-indicator {
+  width: 0.75rem;      /* w-3 */
+  height: 0.75rem;     /* h-3 */
+  border-radius: 9999px; /* rounded-full */
+  display: inline-block;
+}
+.butt-group {
+  display: flex;        /* flex */
+  align-items: center;  /* items-center */
+  gap: 0.5rem;          /* gap-2 */
+}
+
+.button-secondary {
+  padding-top: 0.5rem;    /* py-2 */
+  padding-bottom: 0.5rem; /* py-2 */
+  padding-left: 1rem;     /* px-4 */
+  padding-right: 1rem;    /* px-4 */
+}
+
+/* OR using shorthand */
+.button-padding {
+  padding: 0.5rem 1rem; /* top/bottom left/right */
+}
+.icon-spacing {
+  width: 1rem;         /* w-4 */
+  height: 1rem;        /* h-4 */
+  margin-right: 0.5rem; /* mr-2 */
+}
+
+.custom-button {
+  /* Layout: flex items-center gap-2 */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem; /* Vertical Horizontal */
+
+  /* Shape: rounded-lg */
+  border-radius: 0.5rem;
+}
+
+.card-container {
+  margin-bottom: 2rem; /* mb-8 */
+  padding: 1.5rem;      /* p-6 */
+}
+.section-heading {
+  font-size: 1.25rem;    /* text-xl */
+  line-height: 1.75rem;   /* standard leading for text-xl */
+  font-weight: 600;      /* font-semibold */
+  margin-bottom: 1rem;   /* mb-4 (Assuming a standard gap) */
+}
+.b-container {
+  margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; 
-}
-.btn-primary {
-  background-color: #6b8e7f;
-  color: #ffffff;
-  border-radius: 0.75rem; /* rounded-xl consistency */
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
+  gap: 1rem;
 }
 
-.btn-primary:hover {
-  background-color: #5a7a6c;
-  transform: translateY(-1px);
+/* Desktop: lg:flex-row */
+@media (min-width: 1024px) {
+  .b-container {
+    flex-direction: row;
+  }
 }
 
-.btn-primary:active {
-  transform: scale(0.98); /* Tactile "squish" feedback */
+.flexible-anchor {
+  /* flex-1 */
+  flex: 1 1 0%;
+  
+  /* relative */
+  position: relative;
+}
+.absolute-icon {
+  position: absolute;   
+  left: 1rem;           
+  top: 0.75rem;         
+  width: 1.25rem;      
+  height: 1.25rem;      
+  inset-inline-start: 1rem; 
+  top: 0.75rem;
+}
+.input-field {
+  width: 100%;             /* w-full */
+  padding-left: 3rem;      /* pl-12 */
+  padding-right: 1rem;     /* pr-4 */
+  padding-top: 0.75rem;    /* py-3 */
+  padding-bottom: 0.75rem; /* py-3 */
+  
+  border-radius: 0.75rem;  /* rounded-xl */
+  border: 2px solid #e2e8f0; /* border-2 (default gray-200) */
+  outline: none;           /* focus:outline-none */
+  
+  transition: border-color 0.15s ease-in-out; /* transition */
 }
 
-.btn-secondary {
-  background-color: #f0ebe5; /* Matches your reference badge */
-  color: #4a5568;            /* Slate 700 for high legibility */
-  border: 1px solid #e8dfd0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;               /* Space between icon and text */
+.input-field:focus {
+  border-color: #14b8a6;   /* focus:border-teal-500 */
 }
 
-.btn-secondary:hover {
-  background-color: #e8e2d9;
-  border-color: #d4cfc4;
+.flex-tag-container {
+  display: flex;       /* flex */
+  gap: 0.5rem;         /* gap-2 */
+  flex-wrap: wrap;     /* flex-wrap */
+}
+.badge-or-button {
+  /* Spacing: px-4 py-2 */
+  padding: 0.5rem 1rem; /* Vertical Horizontal */
+  text-transform: capitalize;
+}
+.c-container {
+  display: flex;       /* flex */
+  gap: 0.5rem;         /* gap-2 */
+  flex-wrap: wrap;     /* flex-wrap */
+}
+.icon-with-margin {
+  width: 1rem;
+  height: 1rem;
+  margin-inline-end: 0.5rem; /* Better for internationalization */
+}
+.button-spacing {
+  padding-top: 0.5rem;    /* py-2 */
+  padding-bottom: 0.5rem; /* py-2 */
+  padding-left: 1rem;     /* px-4 */
+  padding-right: 1rem;    /* px-4 */
 }
 
-.btn-danger {
-  background-color: #fff1f2; /* Soft Rose background */
-  color: #e11d48;            /* High-contrast Red */
-  border: 1px solid #fecdd3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
+/* OR using the shorthand */
+.button-spacing {
+  padding: 0.5rem 1rem; 
+}
+.button-spacing {
+  padding-top: 0.5rem;   
+  padding-bottom: 0.5rem;
+  padding-left: 1rem;    
+  padding-right: 1rem;   
 }
 
-.btn-danger:hover {
-  background-color: #ffe4e6;
-  border-color: #fb7185;
-  color: #be123c;
+/* OR using the shorthand */
+.button-spacing {
+  padding: 0.5rem 1rem; 
 }

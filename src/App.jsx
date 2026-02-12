@@ -8,7 +8,7 @@ import Autism from './pages/Autism/Autism';
 import Vitals from './pages/Health/VitalsDashboard';
 import Meals from './pages/Health/MealPlanner';
 import StimsTracker from './pages/Autism/StimmingTracker';
-// import MedicationTracker from './pages/Health/MedicationTracker';
+import MedicationTracker from './pages/Health/MedicationTracker';
 import HealthHistory from './pages/Health/HealthHistory';
 import MoodTracker from './pages/Mental/modules/MoodTracker';
 import TherapyNotes from './pages/Mental/modules/TherapyNotes';
@@ -30,7 +30,7 @@ function App() {
           <Route path='/vitals' element={<Vitals />} />
           <Route path='/meals' element={<Meals />} />
           <Route path='/stimtracker' element={<StimsTracker />} />
-          {/* <Route path='/medications' element={<MedicationTracker />} /> */}
+          <Route path='/medications' element={<MedicationTracker />} />
           <Route path='/health-history' element={<HealthHistory />} />
           <Route path='/mood-tracker' element={<MoodTracker />} />
           <Route path='/therapy-notes' element={<TherapyNotes />} />
