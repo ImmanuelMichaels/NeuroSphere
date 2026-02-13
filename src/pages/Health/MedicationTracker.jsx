@@ -850,7 +850,7 @@ Stay consistent with your medication routine! 💊
               <Download className="icon-with-margin" />
               Report
             </Button>
-            <Button onClick={exportJSON} variant="secondary" className="px-4 py-2">
+            <Button onClick={exportJSON} variant="secondary" className="button-spacing">
               <Download className="icon-with-margin" />
               Export
             </Button>
@@ -872,9 +872,9 @@ Stay consistent with your medication routine! 💊
 
         {/* Add/Edit Form */}
         {showAddForm && (
-          <Card className="mb-8 p-6" style={{ background: 'linear-gradient(to br, #fafaf8, #f5f3ef)' }}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold" style={{ color: '#4a5568' }}>
+          <Card className="card-style" style={{ background: 'linear-gradient(to br, #fafaf8, #f5f3ef)' }}>
+            <div className="flex-header">
+              <h2 className="heading-large" style={{ color: '#4a5568' }}>
                 {editingId ? 'Edit Medication' : 'Add New Medication'}
               </h2>
               <button
@@ -883,15 +883,15 @@ Stay consistent with your medication routine! 💊
                   setEditingId(null);
                   resetForm();
                 }}
-                className="p-2 hover:bg-slate-100 rounded-lg transition"
+                className="interactive-item"
               >
-                <X className="w-6 h-6" style={{ color: '#718096' }} />
+                <X className="icon-base" style={{ color: '#718096' }} />
               </button>
             </div>
 
-            <div className="space-y-6">
+            <div className="container">
               {/* Name & Dosage */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="responsive-grid">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
                     Medication Name *
@@ -901,12 +901,12 @@ Stay consistent with your medication routine! 💊
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g., Sertraline"
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
+                    className="input-field"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
+                  <label className="form-label" style={{ color: '#4a5568' }}>
                     Dosage *
                   </label>
                   <input
@@ -914,22 +914,22 @@ Stay consistent with your medication routine! 💊
                     value={formData.dosage}
                     onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
                     placeholder="e.g., 100mg"
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
+                    className="input-custom"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
                   />
                 </div>
               </div>
 
               {/* Form & Frequency */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="responsive-grid">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
+                  <label className="form-label" style={{ color: '#4a5568' }}>
                     Form
                   </label>
                   <select
                     value={formData.form}
                     onChange={(e) => setFormData({ ...formData, form: e.target.value })}
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500 capitalize"
+                    className="input-field"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4', color: '#4a5568' }}
                   >
                     {medicationForms.map(form => (
@@ -940,7 +940,7 @@ Stay consistent with your medication routine! 💊
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
+                  <label className="form-label" style={{ color: '#4a5568' }}>
                     Frequency
                   </label>
                   <select
@@ -953,7 +953,7 @@ Stay consistent with your medication routine! 💊
                         times: getDefaultTimesForFrequency(newFrequency)
                       });
                     }}
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
+                    className="input-custom"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4', color: '#4a5568' }}
                   >
                     {frequencyOptions.map(option => (
@@ -967,31 +967,31 @@ Stay consistent with your medication routine! 💊
 
               {/* Times */}
               <div>
-                <div className="flex justify-between items-center mb-3">
-                  <label className="text-sm font-medium" style={{ color: '#4a5568' }}>
+                <div className="flex-header">
+                  <label className="label-text" style={{ color: '#4a5568' }}>
                     Times to Take
                   </label>
                   <Button onClick={addTimeSlot} variant="secondary" className="px-3 py-1 text-sm">
-                    <Plus className="w-4 h-4 mr-1" />
+                    <Plus className="inline-icon" />
                     Add Time
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="responsive-gallery">
                   {formData.times.map((time, idx) => (
-                    <div key={idx} className="flex gap-2">
+                    <div key={idx} className="flex-cont">
                       <input
                         type="time"
                         value={time}
                         onChange={(e) => updateTimes(idx, e.target.value)}
-                        className="flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none focus:border-teal-500"
+                        className="flex-input"
                         style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
                       />
                       {formData.times.length > 1 && (
                         <button
                           onClick={() => removeTimeSlot(idx)}
-                          className="p-2 hover:bg-red-50 rounded-lg transition"
+                          className="action-item-danger"
                         >
-                          <X className="w-4 h-4" style={{ color: '#c87355' }} />
+                          <X className="icon-small" style={{ color: '#c87355' }} />
                         </button>
                       )}
                     </div>
@@ -1000,9 +1000,9 @@ Stay consistent with your medication routine! 💊
               </div>
 
               {/* Purpose & Prescribed By */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="responsive-grid">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
+                  <label className="form-label" style={{ color: '#4a5568' }}>
                     Purpose
                   </label>
                   <input
@@ -1010,12 +1010,12 @@ Stay consistent with your medication routine! 💊
                     value={formData.purpose}
                     onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                     placeholder="e.g., Depression & Anxiety"
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
+                    className="input-field"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
+                  <label className="form-label" style={{ color: '#4a5568' }}>
                     Prescribed By
                   </label>
                   <input
@@ -1023,60 +1023,60 @@ Stay consistent with your medication routine! 💊
                     value={formData.prescribedBy}
                     onChange={(e) => setFormData({ ...formData, prescribedBy: e.target.value })}
                     placeholder="e.g., Dr. Adeyemi"
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
+                    className="input-field"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
                   />
                 </div>
               </div>
 
               {/* Start & End Date */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="responsive-grid">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                    <Calendar className="w-4 h-4 inline mr-2" />
+                  <label className="form-label" style={{ color: '#4a5568' }}>
+                    <Calendar className="icon-small inline mr-2" />
                     Start Date
                   </label>
                   <input
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
+                    className="input-field"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                    <Calendar className="w-4 h-4 inline mr-2" />
+                  <label className="form-label" style={{ color: '#4a5568' }}>
+                    <Calendar className="icon-small inline mr-2" />
                     End Date (Optional)
                   </label>
                   <input
                     type="date"
                     value={formData.endDate || ''}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value || null })}
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
+                    className="input-field"
                     style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
                   />
                 </div>
               </div>
 
               {/* Checkboxes */}
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex-container-wide">
+                <label className="interactive-flex">
                   <input
                     type="checkbox"
                     checked={formData.withFood}
                     onChange={(e) => setFormData({ ...formData, withFood: e.target.checked })}
-                    className="w-5 h-5 rounded"
+                    className="box-small"
                     style={{ accentColor: '#6b8e7f' }}
                   />
                   <span style={{ color: '#4a5568' }}>Take with food</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="interactive-flex">
                   <input
                     type="checkbox"
                     checked={formData.active}
                     onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                    className="w-5 h-5 rounded"
+                    className="box-small"
                     style={{ accentColor: '#6b8e7f' }}
                   />
                   <span style={{ color: '#4a5568' }}>Currently taking</span>
@@ -1085,15 +1085,15 @@ Stay consistent with your medication routine! 💊
 
               {/* Side Effects */}
               <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: '#4a5568' }}>
+                <label className="form-label" style={{ color: '#4a5568' }}>
                   Side Effects (if any)
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="responsive-grid">
                   {commonSideEffects.map(effect => (
                     <button
                       key={effect}
                       onClick={() => toggleSideEffect(effect)}
-                      className="px-3 py-2 rounded-lg text-sm transition"
+                      className="btn-utility"
                       style={{
                         background: formData.sideEffects.includes(effect) ? '#fce8e8' : '#f0ebe4',
                         color: formData.sideEffects.includes(effect) ? '#c87355' : '#a0947d',
@@ -1109,15 +1109,15 @@ Stay consistent with your medication routine! 💊
 
               {/* Color */}
               <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: '#4a5568' }}>
+                <label className="form-label" style={{ color: '#4a5568' }}>
                   Color Tag
                 </label>
-                <div className="flex gap-3">
+                <div className="flex-row-space">
                   {colorOptions.map(color => (
                     <button
                       key={color}
                       onClick={() => setFormData({ ...formData, color })}
-                      className="w-10 h-10 rounded-full transition transform hover:scale-110"
+                      className="interactive-avatar"
                       style={{
                         background: color,
                         border: formData.color === color ? '3px solid #4a5568' : '2px solid #d4cfc4',
@@ -1130,7 +1130,7 @@ Stay consistent with your medication routine! 💊
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
+                <label className="form-label" style={{ color: '#4a5568' }}>
                   Notes
                 </label>
                 <textarea
@@ -1138,13 +1138,13 @@ Stay consistent with your medication routine! 💊
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Additional instructions, reminders, or observations..."
                   rows="3"
-                  className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500 resize-none"
+                  className="textarea-custom"
                   style={{ background: '#fafaf8', border: '2px solid #d4cfc4', color: '#4a5568' }}
                 />
               </div>
             </div>
 
-            <div className="flex gap-4 mt-8">
+            <div className="action-row">
               <Button onClick={handleAddMedication} variant="primary" className="flex-1 md:flex-none">
                 {editingId ? 'Update Medication' : 'Save Medication'}
               </Button>
@@ -1165,9 +1165,9 @@ Stay consistent with your medication routine! 💊
         {/* Medications List */}
         <div className="space-y-4">
           {filteredMedications.length === 0 ? (
-            <Card className="text-center py-16">
-              <Pill className="w-16 h-16 mx-auto mb-4" style={{ color: '#d4cfc4' }} />
-              <p className="text-xl font-medium mb-2" style={{ color: '#4a5568' }}>
+            <Card className="carded-container">
+              <Pill className="centered-icon" style={{ color: '#d4cfc4' }} />
+              <p className="card-heading" style={{ color: '#4a5568' }}>
                 No medications found
               </p>
               <p style={{ color: '#718096', fontSize: '16px' }}>
@@ -1181,7 +1181,7 @@ Stay consistent with your medication routine! 💊
               return (
                 <Card
                   key={med.id}
-                  className="overflow-hidden transition-all hover:shadow-lg"
+                  className="interactive-card"
                   style={{ 
                     cursor: 'pointer',
                     borderLeft: `6px solid ${med.color}`,
@@ -1189,23 +1189,23 @@ Stay consistent with your medication routine! 💊
                   }}
                 >
                   <div 
-                    className="p-6"
+                    className="padding-standard"
                     onClick={() => setExpandedMed(isExpanded ? null : med.id)}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-3">
+                    <div className="header-layout">
+                      <div className="expandable-item">
+                        <div className="media-header">
                           <div 
-                            className="w-4 h-4 rounded-full"
+                            className="status-dot"
                             style={{ background: med.color }}
                           />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2 flex-wrap">
-                              <h3 className="text-2xl font-semibold" style={{ color: '#4a5568' }}>
+                          <div className="expandable-item">
+                            <div className="badge-container">
+                              <h3 className="section-title" style={{ color: '#4a5568' }}>
                                 {med.name} {med.dosage}
                               </h3>
                               <span
-                                className="px-3 py-1 rounded-full text-sm font-semibold capitalize"
+                                className="badge-ch"
                                 style={{
                                   background: med.active ? '#e8f0ed' : '#e8e3dc',
                                   color: med.active ? '#6b8e7f' : '#8a8480',
