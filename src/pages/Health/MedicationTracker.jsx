@@ -893,7 +893,7 @@ Stay consistent with your medication routine! 💊
               {/* Name & Dosage */}
               <div className="responsive-grid">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
+                  <label className="input-label" style={{ color: '#4a5568' }}>
                     Medication Name *
                   </label>
                   <input
@@ -1205,7 +1205,7 @@ Stay consistent with your medication routine! 💊
                                 {med.name} {med.dosage}
                               </h3>
                               <span
-                                className="badge-ch"
+                                className="badge-chip"
                                 style={{
                                   background: med.active ? '#e8f0ed' : '#e8e3dc',
                                   color: med.active ? '#6b8e7f' : '#8a8480',
@@ -1215,18 +1215,18 @@ Stay consistent with your medication routine! 💊
                                 {med.active ? 'Active' : 'Inactive'}
                               </span>
                             </div>
-                            <div className="flex items-center gap-4 text-sm flex-wrap" style={{ color: '#718096' }}>
-                              <div className="flex items-center gap-1">
-                                <Pill className="w-4 h-4" />
+                            <div className="section-title" style={{ color: '#718096' }}>
+                              <div className="icon-label-group">
+                                <Pill className="size-16" />
                                 {getFrequencyLabel(med.frequency)}
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
+                              <div className="icon-label-group">
+                                <Clock className="size-16" />
                                 {med.times.join(', ')}
                               </div>
                               {med.purpose && (
-                                <div className="flex items-center gap-1">
-                                  <Heart className="w-4 h-4" />
+                                <div className="icon-label-group">
+                                  <Heart className="size-16" />
                                   {med.purpose}
                                 </div>
                               )}
@@ -1236,19 +1236,19 @@ Stay consistent with your medication routine! 💊
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex gap-2">
+                      <div className="small-group">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleToggleMedication(med.id);
                           }}
-                          className="p-2 hover:bg-slate-100 rounded-lg transition"
+                          className="interactive-item"
                           title={med.active ? 'Mark as inactive' : 'Mark as active'}
                         >
                           {med.active ? (
-                            <Shield className="w-5 h-5" style={{ color: '#6b8e7f' }} />
+                            <Shield className="base-interactive" style={{ color: '#6b8e7f' }} />
                           ) : (
-                            <AlertCircle className="w-5 h-5" style={{ color: '#718096' }} />
+                            <AlertCircle className="base-interactive" style={{ color: '#718096' }} />
                           )}
                         </button>
                         <button
@@ -1256,28 +1256,28 @@ Stay consistent with your medication routine! 💊
                             e.stopPropagation();
                             handleEditMedication(med);
                           }}
-                          className="p-2 hover:bg-slate-100 rounded-lg transition"
+                          className="interactive-item"
                         >
-                          <Edit2 className="w-5 h-5" style={{ color: '#718096' }} />
+                          <Edit2 className="base-interactive" style={{ color: '#718096' }} />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteMedication(med.id);
                           }}
-                          className="p-2 hover:bg-red-50 rounded-lg transition"
+                          className="interactive-item"
                         >
-                          <Trash2 className="w-5 h-5" style={{ color: '#c87355' }} />
+                          <Trash2 className="size-20" style={{ color: '#c87355' }} />
                         </button>
                         <button
-                          className="p-2 transition"
+                          className="base-interactive"
                           onClick={(e) => {
                             e.stopPropagation();
                             setExpandedMed(isExpanded ? null : med.id);
                           }}
                         >
                           <ChevronDown
-                            className="w-5 h-5"
+                            className="base-interactive"
                             style={{
                               color: '#718096',
                               transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
@@ -1292,28 +1292,28 @@ Stay consistent with your medication routine! 💊
                   {/* Expanded Details */}
                   {isExpanded && (
                     <div 
-                      className="px-6 pb-6 pt-4 space-y-4"
+                      className="card-content"
                       style={{ borderTop: '2px solid #e8e5df' }}
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="responsive-grid">
                         {/* Details */}
-                        <div className="space-y-3">
+                        <div className="container">
                           <div>
-                            <p className="text-xs font-bold mb-1" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
+                            <p className="eyebrow-text" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
                               FORM
                             </p>
                             <p className="capitalize" style={{ color: '#4a5568' }}>{med.form}</p>
                           </div>
 
                           <div>
-                            <p className="text-xs font-bold mb-1" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
+                            <p className="eyebrow-text" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
                               PRESCRIBED BY
                             </p>
                             <p style={{ color: '#4a5568' }}>{med.prescribedBy}</p>
                           </div>
 
                           <div>
-                            <p className="text-xs font-bold mb-1" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
+                            <p className="eyebrow-text" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
                               START DATE
                             </p>
                             <p style={{ color: '#4a5568' }}>
@@ -1323,7 +1323,7 @@ Stay consistent with your medication routine! 💊
                           </div>
 
                           <div>
-                            <p className="text-xs font-bold mb-1" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
+                            <p className="eyebrow-text" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
                               INSTRUCTIONS
                             </p>
                             <p style={{ color: '#4a5568' }}>
@@ -1333,17 +1333,17 @@ Stay consistent with your medication routine! 💊
                         </div>
 
                         {/* Side Effects & Notes */}
-                        <div className="space-y-3">
+                        <div className="container">
                           {med.sideEffects.length > 0 && (
                             <div>
-                              <p className="text-xs font-bold mb-2" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
+                              <p className="eyebrow-text" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
                                 SIDE EFFECTS
                               </p>
-                              <div className="flex flex-wrap gap-2">
+                              <div className="badge-flow">
                                 {med.sideEffects.map((effect, idx) => (
                                   <span
                                     key={idx}
-                                    className="px-2 py-1 rounded text-xs font-medium"
+                                    className="micro-badge"
                                     style={{
                                       background: '#fce8e8',
                                       color: '#c87355',
@@ -1359,7 +1359,7 @@ Stay consistent with your medication routine! 💊
 
                           {med.notes && (
                             <div>
-                              <p className="text-xs font-bold mb-2" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
+                              <p className="eyebrow-label" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
                                 NOTES
                               </p>
                               <p style={{ color: '#4a5568', lineHeight: '1.6' }}>{med.notes}</p>
