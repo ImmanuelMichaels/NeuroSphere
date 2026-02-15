@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UtensilsCrossed, Clock, Leaf, Heart, ChevronDown, ChevronUp, CheckCircle2, Info } from 'lucide-react';
+import './MealPlanner.css';
 
 const MealPlanner = () => {
     const [selectedDiet, setSelectedDiet] = useState('dash');
@@ -224,10 +225,10 @@ const MealPlanner = () => {
             background: 'linear-gradient(135deg, #f5f3ef 0%, #e8e5df 100%)',
             fontFamily: "'Atkinson Hyperlegible', 'Lexend', system-ui, sans-serif"
         }}>
-            <div className="max-w-6xl mx-auto px-6 py-12">
+            <div className="container-center">
                 {/* Header */}
-                <div className="mb-10">
-                    <h1 className="text-3xl font-semibold mb-3" style={{ color: '#4a5568' }}>
+                <div className="section-divider">
+                    <h1 className="section-title" style={{ color: '#4a5568' }}>
                         Meal Planner
                     </h1>
                     <p style={{ color: '#718096', fontSize: '16px' }}>
@@ -236,39 +237,39 @@ const MealPlanner = () => {
                 </div>
 
                 {/* Diet Profile Selection */}
-                <div className="mb-10">
-                    <h2 className="text-lg font-semibold mb-4" style={{ color: '#4a5568' }}>
+                <div className="section-divider">
+                    <h2 className="section-title" style={{ color: '#4a5568' }}>
                         Select Your Diet Profile
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="responsive-grid">
                         {Object.entries(dietProfiles).map(([key, profile]) => (
                             <button
                                 key={key}
                                 onClick={() => setSelectedDiet(key)}
-                                className="p-6 rounded-2xl text-left transition-all"
+                                className="card-base"
                                 style={{
                                     background: selectedDiet === key ? profile.bg : '#fafaf8',
                                     border: selectedDiet === key ? `3px solid ${profile.color}` : '2px solid #d4cfc4',
                                     minHeight: '120px'
                                 }}
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 rounded-xl" style={{ 
+                                <div className="media-object">
+                                    <div className="button-container" style={{ 
                                         background: selectedDiet === key ? profile.color + '20' : '#f0ebe5'
                                     }}>
                                         <profile.icon className="w-6 h-6" style={{ color: profile.color }} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-semibold mb-1" style={{ 
+                                        <h3 className="section-title" style={{ 
                                             color: '#4a5568',
                                             fontSize: '17px'
                                         }}>
                                             {profile.name}
                                         </h3>
-                                        <p className="text-sm mb-2" style={{ color: '#9ca3af' }}>
+                                        <p className="secondary-label" style={{ color: '#9ca3af' }}>
                                             {profile.description}
                                         </p>
-                                        <p className="text-xs" style={{ color: '#718096' }}>
+                                        <p className="micro-text" style={{ color: '#718096' }}>
                                             {profile.focus}
                                         </p>
                                     </div>
@@ -282,16 +283,16 @@ const MealPlanner = () => {
                 </div>
 
                 {/* Meal Time Selection */}
-                <div className="mb-8">
-                    <h2 className="text-lg font-semibold mb-4" style={{ color: '#4a5568' }}>
+                <div className="section-spacer">
+                    <h2 className="card-title" style={{ color: '#4a5568' }}>
                         Choose Meal Time
                     </h2>
-                    <div className="flex gap-3 flex-wrap">
+                    <div className="tag-container">
                         {['breakfast', 'lunch', 'dinner'].map((time) => (
                             <button
                                 key={time}
                                 onClick={() => setSelectedMealTime(time)}
-                                className="px-6 py-3 rounded-xl font-medium transition-all capitalize"
+                                className="button-premium"
                                 style={{
                                     background: selectedMealTime === time ? currentDiet.bg : '#f0ebe5',
                                     color: selectedMealTime === time ? currentDiet.color : '#718096',
@@ -307,14 +308,14 @@ const MealPlanner = () => {
                 </div>
 
                 {/* Meal Suggestions */}
-                <div className="space-y-4 mb-10">
-                    <h2 className="text-lg font-semibold mb-4" style={{ color: '#4a5568' }}>
+                <div className="section-divider">
+                    <h2 className="card-title" style={{ color: '#4a5568' }}>
                         Suggested Meals
                     </h2>
                     {currentMeals.map((meal) => (
                         <div
                             key={meal.id}
-                            className="rounded-2xl shadow-sm overflow-hidden"
+                            className="btn-premium"
                             style={{
                                 background: '#fafaf8',
                                 border: '2px solid #d4cfc4'
@@ -322,15 +323,15 @@ const MealPlanner = () => {
                         >
                             <button
                                 onClick={() => toggleMealExpansion(meal.id)}
-                                className="w-full p-6 flex items-center justify-between transition-all"
+                                className="flex-header"
                                 style={{ minHeight: '88px' }}
                             >
-                                <div className="flex items-center gap-4 flex-1 text-left">
-                                    <div className="p-3 rounded-xl" style={{ background: currentDiet.bg }}>
-                                        <UtensilsCrossed className="w-6 h-6" style={{ color: currentDiet.color }} />
+                                <div className="list-item-content">
+                                    <div className="card-component" style={{ background: currentDiet.bg }}>
+                                        <UtensilsCrossed className="icon-size" style={{ color: currentDiet.color }} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-semibold mb-1" style={{ 
+                                        <h3 className="card-title" style={{ 
                                             color: '#4a5568',
                                             fontSize: '17px'
                                         }}>
@@ -339,12 +340,12 @@ const MealPlanner = () => {
                                         <p style={{ color: '#718096', fontSize: '14px' }}>
                                             {meal.description}
                                         </p>
-                                        <div className="flex items-center gap-4 mt-2">
-                                            <span className="flex items-center gap-1 text-xs" style={{ color: '#9ca3af' }}>
-                                                <Clock className="w-3 h-3" />
+                                        <div className="media-group">
+                                            <span className="micro-label" style={{ color: '#9ca3af' }}>
+                                                <Clock className="micro-size" />
                                                 {meal.prepTime}
                                             </span>
-                                            <span className="text-xs px-2 py-1 rounded" style={{
+                                            <span className="ui-badge" style={{
                                                 background: currentDiet.bg,
                                                 color: currentDiet.color
                                             }}>
@@ -354,19 +355,19 @@ const MealPlanner = () => {
                                     </div>
                                 </div>
                                 {expandedMeal === meal.id ? 
-                                    <ChevronUp className="w-6 h-6" style={{ color: '#9ca3af' }} /> : 
-                                    <ChevronDown className="w-6 h-6" style={{ color: '#9ca3af' }} />
+                                    <ChevronUp className="micro-size" style={{ color: '#9ca3af' }} /> : 
+                                    <ChevronDown className="micro-size" style={{ color: '#9ca3af' }} />
                                 }
                             </button>
 
                             {/* Expanded Details */}
                             {expandedMeal === meal.id && (
-                                <div className="px-6 pb-6">
-                                    <div className="p-5 rounded-xl mb-4" style={{ background: '#f0ebe5' }}>
+                                <div className="content-wrapper">
+                                    <div className="list-card" style={{ background: '#f0ebe5' }}>
                                         <div className="flex items-start gap-2 mb-3">
-                                            <Info className="w-5 h-5 mt-0.5" style={{ color: currentDiet.color }} />
+                                            <Info className="micro-size mt-0.5" style={{ color: currentDiet.color }} />
                                             <div>
-                                                <h4 className="font-semibold mb-1" style={{ color: '#4a5568', fontSize: '15px' }}>
+                                                <h4 className="tight-heading" style={{ color: '#4a5568', fontSize: '15px' }}>
                                                     Nutrition Highlights
                                                 </h4>
                                                 <p className="text-sm" style={{ color: '#718096' }}>
@@ -376,20 +377,20 @@ const MealPlanner = () => {
                                         </div>
 
                                         {selectedDiet === 'dash' && (
-                                            <div className="grid grid-cols-2 gap-4 mt-3">
+                                            <div className="two-column-grid">
                                                 <div>
-                                                    <span className="text-xs font-medium" style={{ color: '#9ca3af' }}>
+                                                    <span className="label-small" style={{ color: '#9ca3af' }}>
                                                         Sodium
                                                     </span>
-                                                    <p className="font-semibold" style={{ color: '#4a5568' }}>
+                                                    <p className="text-heading" style={{ color: '#4a5568' }}>
                                                         {meal.sodium}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <span className="text-xs font-medium" style={{ color: '#9ca3af' }}>
+                                                    <span className="label-small" style={{ color: '#9ca3af' }}>
                                                         Potassium
                                                     </span>
-                                                    <p className="font-semibold" style={{ color: '#4a5568' }}>
+                                                    <p className="text-heading" style={{ color: '#4a5568' }}>
                                                         {meal.potassium}
                                                     </p>
                                                 </div>
@@ -397,20 +398,20 @@ const MealPlanner = () => {
                                         )}
 
                                         {selectedDiet === 'lowGlycemic' && (
-                                            <div className="grid grid-cols-2 gap-4 mt-3">
+                                            <div className="two-column-grid">
                                                 <div>
-                                                    <span className="text-xs font-medium" style={{ color: '#9ca3af' }}>
+                                                    <span className="label-small" style={{ color: '#9ca3af' }}>
                                                         Glycemic Index
                                                     </span>
-                                                    <p className="font-semibold" style={{ color: '#4a5568' }}>
+                                                    <p className="text-heading" style={{ color: '#4a5568' }}>
                                                         {meal.glycemicIndex}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <span className="text-xs font-medium" style={{ color: '#9ca3af' }}>
+                                                    <span className="label-small" style={{ color: '#9ca3af' }}>
                                                         Fiber
                                                     </span>
-                                                    <p className="font-semibold" style={{ color: '#4a5568' }}>
+                                                    <p className="text-heading" style={{ color: '#4a5568' }}>
                                                         {meal.fiber}
                                                     </p>
                                                 </div>
@@ -418,14 +419,14 @@ const MealPlanner = () => {
                                         )}
                                     </div>
 
-                                    <div className="mb-4">
-                                        <h4 className="font-semibold mb-3" style={{ color: '#4a5568', fontSize: '15px' }}>
+                                    <div className="spacer-bottom">
+                                        <h4 className="tight-heading" style={{ color: '#4a5568', fontSize: '15px' }}>
                                             Ingredients
                                         </h4>
-                                        <ul className="space-y-2">
+                                        <ul className="parent">
                                             {meal.ingredients.map((ingredient, i) => (
-                                                <li key={i} className="flex items-center gap-2" style={{ color: '#718096', fontSize: '14px' }}>
-                                                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: currentDiet.color }}></div>
+                                                <li key={i} className="inline-group" style={{ color: '#718096', fontSize: '14px' }}>
+                                                    <div className="status-dot" style={{ background: currentDiet.color }}></div>
                                                     {ingredient}
                                                 </li>
                                             ))}
@@ -434,7 +435,7 @@ const MealPlanner = () => {
 
                                     <button
                                         onClick={() => saveMeal(meal)}
-                                        className="w-full px-6 py-3 rounded-xl font-medium transition-all"
+                                        className="primary-button"
                                         style={{
                                             background: currentDiet.bg,
                                             color: currentDiet.color,
@@ -453,16 +454,16 @@ const MealPlanner = () => {
 
                 {/* Saved Meals Summary */}
                 {savedMeals.length > 0 && (
-                    <div className="p-8 rounded-2xl shadow-sm" style={{
+                    <div className="premium-card" style={{
                         background: 'linear-gradient(135deg, #e8f0ed 0%, #d9ead3 100%)',
                         border: '2px solid #b8d4a8'
                     }}>
-                        <h3 className="font-semibold mb-4" style={{ color: '#4a5568', fontSize: '18px' }}>
+                        <h3 className="text-heading" style={{ color: '#4a5568', fontSize: '18px' }}>
                             Your Meal Plan ({savedMeals.length} meals saved)
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="tight-heading">
                             {savedMeals.map((meal) => (
-                                <div key={meal.id} className="p-4 rounded-xl" style={{
+                                <div key={meal.id} className="standard-card" style={{
                                     background: '#ffffff',
                                     border: '1px solid #b8d4a8'
                                 }}>
