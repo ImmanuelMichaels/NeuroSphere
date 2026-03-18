@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout/Layout';
+import Layout from './components/Layout/AppShell';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Intake from './pages/Intake';
 import Bipolar from './pages/Mental/modules/Bipolar';
-import Genetics from './pages/Genetics';
+import Genetics from './pages/Health/Genetics';
 import Autism from './pages/Autism/Autism';
 import Vitals from './pages/Health/VitalsDashboard';
 import Meals from './pages/Health/MealPlanner';

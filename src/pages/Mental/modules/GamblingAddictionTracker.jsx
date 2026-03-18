@@ -1,1261 +1,1001 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
-  Plus,
-  Calendar,
-  Clock,
-  DollarSign,
-  TrendingDown,
-  TrendingUp,
-  AlertTriangle,
-  Shield,
-  Target,
-  Award,
-  X,
-  Edit2,
-  Trash2,
-  Search,
-  Download,
-  ChevronDown,
-  Zap,
-  Phone,
-  MessageSquare,
-  BookOpen,
-  Users,
-  Heart,
-  Brain,
-  CheckCircle2,
-  XCircle,
-  Activity
-} from 'lucide-react';
-import Button from '../../../components/UI/Button';
-import Card from '../../../components/UI/Card';
+  Plus, Minus, Calendar, Clock, DollarSign, TrendingDown, TrendingUp,
+  AlertTriangle, Shield, Target, Award, X, Edit2, Trash2, Search,
+  Download, ChevronDown, ChevronUp, Zap, Phone, BookOpen, Heart,
+  Brain, CheckCircle2, Activity, RefreshCw, Sparkles, FileText,
+  BarChart3, List, AlertCircle, Star, Flame, Wind
+} from "lucide-react";
 import {
-  LineChart as RechartsLineChart,
-  Line as RechartsLine,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  Legend
-} from 'recharts';
+  LineChart, Line, BarChart, Bar, AreaChart, Area,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  Legend, ReferenceLine
+} from "recharts";
 
-const GamblingAddictionTracker = () => {
-  // ==================== INITIAL DATA ====================
-  const initialEntries = [
-    {
-      id: 1,
-      date: '2025-01-30',
-      time: '14:30',
-      type: 'urge_resisted',
-      urgeIntensity: 7,
-      resistanceStrength: 8,
-      triggers: ['Saw sports betting ad', 'Friend mentioned winnings'],
-      copingStrategies: ['Called accountability partner', 'Went for a walk'],
-      mood: 'anxious',
-      notes: 'Strong urge to bet on weekend games. Called my sponsor instead. Proud of myself.',
-      moneyNotSpent: 5000, // Naira
-      daysClean: 15
-    },
-    {
-      id: 2,
-      date: '2025-01-28',
-      time: '20:15',
-      type: 'relapse',
-      amountLost: 8000,
-      amountWon: 0,
-      duration: 45, // minutes
-      triggers: ['Boredom', 'Stress from work'],
-      mood: 'depressed',
-      notes: 'Relapsed after stressful day at work. Bet on virtual games. Feel terrible.',
-      daysClean: 0
-    },
-    {
-      id: 3,
-      date: '2025-01-25',
-      time: '16:00',
-      type: 'urge_resisted',
-      urgeIntensity: 9,
-      resistanceStrength: 6,
-      triggers: ['Payday', 'Passed betting shop'],
-      copingStrategies: ['Distraction technique', 'Called helpline'],
-      mood: 'stressed',
-      notes: 'Very strong urge on payday. Almost went in but called helpline instead.',
-      moneyNotSpent: 10000,
-      daysClean: 12
-    }
+// ─── Design Tokens ─────────────────────────────────────────────────────────
+// Deep navy-obsidian — serious, clinical, hopeful
+const C = {
+  bg:        "#060810",
+  surface:   "#0a0d14",
+  card:      "#0f1320",
+  cardHi:    "#131829",
+  border:    "#1c2436",
+  borderHi:  "#263354",
+  text:      "#dde4f0",
+  muted:     "#566278",
+  dim:       "#2a3448",
+  // Status palette
+  victory:   "#2dd4bf",   // resisted urge — teal
+  victoryDim:"#0d3d38",
+  warning:   "#f59e0b",   // close call — amber
+  warningDim:"#3d2800",
+  relapse:   "#f87171",   // relapse — red
+  relapseDim:"#3d1010",
+  // Recovery accents
+  gold:      "#fbbf24",
+  sapphire:  "#60a5fa",
+  violet:    "#a78bfa",
+  sage:      "#34d399",
+  rose:      "#fb7185",
+};
+
+// ─── Config ─────────────────────────────────────────────────────────────────
+const ENTRY_TYPES = [
+  { value:"urge_resisted", label:"Urge Resisted",  Icon:Shield,        color:C.victory, dim:C.victoryDim },
+  { value:"close_call",    label:"Close Call",     Icon:Zap,           color:C.warning, dim:C.warningDim },
+  { value:"relapse",       label:"Relapse",        Icon:AlertTriangle, color:C.relapse, dim:C.relapseDim },
+];
+const getTypeConfig = v => ENTRY_TYPES.find(t => t.value === v) || ENTRY_TYPES[0];
+
+const TRIGGERS = [
+  "Boredom","Stress from work","Financial pressure","Saw betting ad",
+  "Friend mentioned gambling","Payday","Passed betting shop","Online ads",
+  "Loneliness","Celebration mood","Depression","Relationship issues",
+  "Free time","Alcohol use","Sports event",
+];
+const COPING = [
+  "Called accountability partner","Went for a walk","Exercise",
+  "Meditation","Called helpline","Distraction technique",
+  "Journaling","Prayer","Talked to family","Read recovery material",
+  "Attended support group","Left the situation","Deep breathing",
+  "Cold shower","5-minute rule",
+];
+const MOODS = ["happy","neutral","anxious","stressed","depressed","excited","bored","angry","confident","ashamed","hopeful","calm"];
+
+const HOTLINES = [
+  { name:"Gamblers Anonymous Nigeria",   number:"08012345678",  type:"local"         },
+  { name:"National Gambling Helpline",   number:"0800-GAMBLER", type:"national"      },
+  { name:"Crisis Helpline",              number:"112",          type:"emergency"     },
+  { name:"Mentally Aware Nigeria",       number:"09010000000",  type:"mental_health" },
+];
+
+const MILESTONES = [1,3,7,14,21,30,60,90,180,365];
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+const todayStr  = () => new Date().toISOString().split("T")[0];
+const nowTime   = () => { const d=new Date(); return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+const fmtDate   = s => { try { return new Date(s+"T12:00:00").toLocaleDateString("en-NG",{weekday:"short",month:"short",day:"numeric"}); } catch { return s; } };
+const fmtShort  = s => { try { return new Date(s+"T12:00:00").toLocaleDateString("en",{month:"short",day:"numeric"}); } catch { return s; } };
+const fmtMoney  = n => `₦${Number(n||0).toLocaleString()}`;
+const clamp     = (v,mn,mx) => Math.min(mx,Math.max(mn,v));
+const daysBetween = (a,b) => Math.floor((b-a)/(1000*60*60*24));
+
+// ─── Seed data ───────────────────────────────────────────────────────────────
+const buildSeed = () => {
+  const today = new Date();
+  const entries = [];
+  let id = 1;
+  const pattern = [
+    { daysAgo:0,  type:"urge_resisted", urge:6, resist:8, money:3000,  mood:"anxious",  triggers:["Boredom","Saw betting ad"],         coping:["Called accountability partner","Deep breathing"], notes:"Resisted the urge to check betting apps. Called my partner and went for a walk instead." },
+    { daysAgo:2,  type:"urge_resisted", urge:8, resist:7, money:5000,  mood:"stressed", triggers:["Stress from work","Payday"],          coping:["Exercise","Meditation"],                          notes:"Payday is always hard. Did 30 min jog and felt much better." },
+    { daysAgo:4,  type:"close_call",    urge:9, resist:5, money:0,     mood:"depressed",triggers:["Loneliness","Online ads"],            coping:["Called helpline"],                                notes:"Almost opened the app. Helpline counsellor talked me through it for 20 mins." },
+    { daysAgo:7,  type:"urge_resisted", urge:5, resist:9, money:8000,  mood:"confident",triggers:["Boredom"],                           coping:["Journaling","Read recovery material"],            notes:"Strong day. Journaling really helped me see my patterns clearly." },
+    { daysAgo:10, type:"relapse",       urge:10,resist:0, money:0,     mood:"depressed",triggers:["Relationship issues","Alcohol use"], coping:[],                                                 amountLost:12000, amountWon:0, duration:90, notes:"Terrible night. Argument at home. Ended up on virtual games. Reset counter." },
+    { daysAgo:14, type:"urge_resisted", urge:7, resist:8, money:4000,  mood:"anxious",  triggers:["Sports event","Friend mentioned gambling"],coping:["Called accountability partner","Prayer"],   notes:"Big match day. My mates were at the betting shop. I stayed home and prayed." },
+    { daysAgo:17, type:"urge_resisted", urge:6, resist:9, money:6000,  mood:"calm",     triggers:["Financial pressure"],                 coping:["Distraction technique","Talked to family"],      notes:"Bills due. Thought about a quick win. Talked to my sister instead." },
+    { daysAgo:20, type:"close_call",    urge:8, resist:4, money:0,     mood:"bored",    triggers:["Free time","Online ads"],             coping:["Left the situation"],                             notes:"Saw a promo popup. Got up and left the room." },
+    { daysAgo:25, type:"urge_resisted", urge:4, resist:10,money:2000,  mood:"hopeful",  triggers:["Boredom"],                           coping:["Deep breathing","5-minute rule"],                 notes:"Did the 5-minute rule three times today. Each time the urge passed." },
+    { daysAgo:30, type:"urge_resisted", urge:7, resist:7, money:10000, mood:"neutral",  triggers:["Payday","Passed betting shop"],       coping:["Went for a walk","Attended support group"],      notes:"Walked past the shop on payday. Kept walking. Support group tonight helped." },
   ];
-
-  // ==================== STATE MANAGEMENT ====================
-  const [entries, setEntries] = useState(() => {
-    try {
-      const saved = localStorage.getItem('neuropulse_gambling_tracker');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (error) {
-      console.error('Error loading gambling entries:', error);
-    }
-    return initialEntries;
+  pattern.forEach(p => {
+    const d = new Date(today); d.setDate(d.getDate() - p.daysAgo);
+    const ds = d.toISOString().split("T")[0];
+    entries.push({ id:id++, date:ds, time:"10:00", ...p, daysAgo:undefined });
   });
+  return entries;
+};
 
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [expandedEntry, setExpandedEntry] = useState(null);
-  const [filterPeriod, setFilterPeriod] = useState('all');
-  const [showEmergencyHelp, setShowEmergencyHelp] = useState(false);
+const BLANK = {
+  date:todayStr(), time:nowTime(), type:"urge_resisted",
+  urgeIntensity:5, resistanceStrength:5,
+  amountLost:0, amountWon:0, duration:0,
+  triggers:[], coping:[], mood:"neutral",
+  notes:"", moneyNotSpent:0,
+};
 
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    time: new Date().toTimeString().slice(0, 5),
-    type: 'urge_resisted',
-    urgeIntensity: 5,
-    resistanceStrength: 5,
-    amountLost: 0,
-    amountWon: 0,
-    duration: 0,
-    triggers: [],
-    copingStrategies: [],
-    mood: 'neutral',
-    notes: '',
-    moneyNotSpent: 0
-  });
-
-  const fileInputRef = useRef(null);
-  const nextIdRef = useRef(Math.max(...initialEntries.map(e => e.id), 0) + 1);
-
-  // ==================== CONFIGURATION ====================
-  const entryTypes = [
-    { value: 'urge_resisted', label: 'Resisted Urge', icon: Shield, color: '#6b8e7f', bg: '#e8f0ed' },
-    { value: 'relapse', label: 'Relapse', icon: AlertTriangle, color: '#c87355', bg: '#fce8e8' },
-    { value: 'close_call', label: 'Close Call', icon: Zap, color: '#d4a574', bg: '#fff9f0' }
-  ];
-
-  const triggerOptions = [
-    'Boredom', 'Stress from work', 'Financial pressure', 'Saw betting ad',
-    'Friend mentioned gambling', 'Payday', 'Passed betting shop',
-    'Online ads', 'Loneliness', 'Celebration mood', 'Depression',
-    'Relationship issues', 'Free time', 'Alcohol use'
-  ];
-
-  const copingStrategyOptions = [
-    'Called accountability partner', 'Went for a walk', 'Exercise',
-    'Meditation', 'Called helpline', 'Distraction technique',
-    'Journaling', 'Prayer', 'Talked to family', 'Read recovery material',
-    'Attended support group', 'Left the situation', 'Deep breathing'
-  ];
-
-  const moodOptions = [
-    'happy', 'neutral', 'anxious', 'stressed', 'depressed', 
-    'excited', 'bored', 'angry', 'confident', 'ashamed'
-  ];
-
-  const emergencyHotlines = [
-    { name: 'Gamblers Anonymous Nigeria', number: '08012345678', type: 'local' },
-    { name: 'National Gambling Helpline', number: '0800-GAMBLER', type: 'national' },
-    { name: 'Crisis Helpline', number: '112', type: 'emergency' },
-    { name: 'Mentally Aware Nigeria', number: '09010000000', type: 'mental_health' }
-  ];
-
-  // ==================== HELPER FUNCTIONS ====================
-  const resetForm = useCallback(() => {
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
-      type: 'urge_resisted',
-      urgeIntensity: 5,
-      resistanceStrength: 5,
-      amountLost: 0,
-      amountWon: 0,
-      duration: 0,
-      triggers: [],
-      copingStrategies: [],
-      mood: 'neutral',
-      notes: '',
-      moneyNotSpent: 0
-    });
-  }, []);
-
-  const calculateDaysClean = useCallback(() => {
-    const sortedEntries = [...entries].sort((a, b) => {
-      const dateA = new Date(`${a.date} ${a.time}`);
-      const dateB = new Date(`${b.date} ${b.time}`);
-      return dateB - dateA;
-    });
-
-    const lastRelapse = sortedEntries.find(e => e.type === 'relapse');
-    
-    if (!lastRelapse) {
-      // No relapses, calculate from first entry
-      const firstEntry = sortedEntries[sortedEntries.length - 1];
-      if (firstEntry) {
-        const daysSinceStart = Math.floor(
-          (new Date() - new Date(firstEntry.date)) / (1000 * 60 * 60 * 24)
-        );
-        return daysSinceStart;
-      }
-      return 0;
-    }
-
-    const daysSinceRelapse = Math.floor(
-      (new Date() - new Date(lastRelapse.date)) / (1000 * 60 * 60 * 24)
-    );
-    return daysSinceRelapse;
-  }, [entries]);
-
-  // ==================== EFFECTS ====================
-  useEffect(() => {
-    try {
-      localStorage.setItem('neuropulse_gambling_tracker', JSON.stringify(entries));
-    } catch (error) {
-      console.error('Error saving gambling entries:', error);
-    }
-  }, [entries]);
-
-  // ==================== COMPUTED VALUES ====================
-  const filteredEntries = useMemo(() => {
-    let filtered = [...entries];
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(entry =>
-        entry.notes.toLowerCase().includes(term) ||
-        entry.triggers?.some(t => t.toLowerCase().includes(term)) ||
-        entry.copingStrategies?.some(c => c.toLowerCase().includes(term))
-      );
-    }
-
-    if (filterPeriod !== 'all') {
-      const now = new Date();
-      const cutoffDate = new Date();
-
-      if (filterPeriod === 'week') {
-        cutoffDate.setDate(now.getDate() - 7);
-      } else if (filterPeriod === 'month') {
-        cutoffDate.setMonth(now.getMonth() - 1);
-      }
-
-      filtered = filtered.filter(entry => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= cutoffDate;
-      });
-    }
-
-    return filtered.sort((a, b) => {
-      const dateA = new Date(`${a.date} ${a.time}`);
-      const dateB = new Date(`${b.date} ${b.time}`);
-      return dateB - dateA;
-    });
-  }, [entries, searchTerm, filterPeriod]);
-
-  const stats = useMemo(() => {
-    const daysClean = calculateDaysClean();
-    const totalResisted = filteredEntries.filter(e => e.type === 'urge_resisted').length;
-    const totalRelapses = filteredEntries.filter(e => e.type === 'relapse').length;
-    const totalMoneySaved = filteredEntries
-      .filter(e => e.moneyNotSpent)
-      .reduce((sum, e) => sum + (e.moneyNotSpent || 0), 0);
-    const totalMoneyLost = filteredEntries
-      .filter(e => e.amountLost)
-      .reduce((sum, e) => sum + (e.amountLost || 0), 0);
-    
-    const avgUrgeIntensity = filteredEntries
-      .filter(e => e.urgeIntensity)
-      .reduce((sum, e) => sum + e.urgeIntensity, 0) / 
-      (filteredEntries.filter(e => e.urgeIntensity).length || 1);
-
-    const resistanceRate = totalResisted + totalRelapses > 0
-      ? ((totalResisted / (totalResisted + totalRelapses)) * 100).toFixed(1)
-      : 0;
-
-    return {
-      daysClean,
-      totalResisted,
-      totalRelapses,
-      totalMoneySaved,
-      totalMoneyLost,
-      avgUrgeIntensity: avgUrgeIntensity.toFixed(1),
-      resistanceRate,
-      netSavings: totalMoneySaved - totalMoneyLost
-    };
-  }, [filteredEntries, calculateDaysClean]);
-
-  const chartData = useMemo(() => {
-    return [...filteredEntries]
-      .reverse()
-      .map(e => ({
-        date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        urgeIntensity: e.urgeIntensity || 0,
-        resistanceStrength: e.resistanceStrength || 0,
-        type: e.type
-      }));
-  }, [filteredEntries]);
-
-  const moneyChartData = useMemo(() => {
-    return [...filteredEntries]
-      .reverse()
-      .filter(e => e.moneyNotSpent || e.amountLost)
-      .map(e => ({
-        date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        saved: e.moneyNotSpent || 0,
-        lost: e.amountLost || 0
-      }));
-  }, [filteredEntries]);
-
-  // ==================== EVENT HANDLERS ====================
-  const handleAddEntry = useCallback(() => {
-    if (editingId) {
-      setEntries(prev =>
-        prev.map(entry =>
-          entry.id === editingId ? { ...entry, ...formData } : entry
-        )
-      );
-      setEditingId(null);
-    } else {
-      const newEntry = {
-        ...formData,
-        id: nextIdRef.current++,
-        daysClean: formData.type === 'relapse' ? 0 : calculateDaysClean()
-      };
-      setEntries(prev => [newEntry, ...prev]);
-    }
-    resetForm();
-    setShowAddForm(false);
-  }, [editingId, formData, resetForm, calculateDaysClean]);
-
-  const handleEditEntry = useCallback((entry) => {
-    setFormData(entry);
-    setEditingId(entry.id);
-    setShowAddForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  const handleDeleteEntry = useCallback((id) => {
-    if (window.confirm('Delete this entry? This cannot be undone.')) {
-      setEntries(prev => prev.filter(entry => entry.id !== id));
-      if (expandedEntry === id) {
-        setExpandedEntry(null);
-      }
-    }
-  }, [expandedEntry]);
-
-  const toggleTrigger = useCallback((trigger) => {
-    setFormData(prev => ({
-      ...prev,
-      triggers: prev.triggers.includes(trigger)
-        ? prev.triggers.filter(t => t !== trigger)
-        : [...prev.triggers, trigger]
-    }));
-  }, []);
-
-  const toggleCopingStrategy = useCallback((strategy) => {
-    setFormData(prev => ({
-      ...prev,
-      copingStrategies: prev.copingStrategies.includes(strategy)
-        ? prev.copingStrategies.filter(s => s !== strategy)
-        : [...prev.copingStrategies, strategy]
-    }));
-  }, []);
-
-  const downloadReport = useCallback(() => {
-    const reportText = `
-NEUROPULSE GAMBLING ADDICTION RECOVERY TRACKER
-${'='.repeat(70)}
-Report Date: ${new Date().toLocaleDateString()}
-Period: ${filterPeriod === 'week' ? 'Last 7 days' : filterPeriod === 'month' ? 'Last 30 days' : 'All time'}
-
-RECOVERY STATISTICS
-${'-'.repeat(70)}
-Days Clean: ${stats.daysClean} days
-Total Urges Resisted: ${stats.totalResisted}
-Total Relapses: ${stats.totalRelapses}
-Resistance Rate: ${stats.resistanceRate}%
-Average Urge Intensity: ${stats.avgUrgeIntensity}/10
-
-FINANCIAL IMPACT
-${'-'.repeat(70)}
-Money Saved (urges resisted): ₦${stats.totalMoneySaved.toLocaleString()}
-Money Lost (relapses): ₦${stats.totalMoneyLost.toLocaleString()}
-Net Savings: ₦${stats.netSavings.toLocaleString()}
-
-TOP TRIGGERS
-${'-'.repeat(70)}
-${Object.entries(
-  filteredEntries
-    .flatMap(e => e.triggers || [])
-    .reduce((acc, t) => {
-      acc[t] = (acc[t] || 0) + 1;
-      return acc;
-    }, {})
-)
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 5)
-  .map(([trigger, count]) => `${trigger}: ${count} times`)
-  .join('\n') || 'No triggers tracked'}
-
-MOST EFFECTIVE COPING STRATEGIES
-${'-'.repeat(70)}
-${Object.entries(
-  filteredEntries
-    .filter(e => e.type === 'urge_resisted')
-    .flatMap(e => e.copingStrategies || [])
-    .reduce((acc, s) => {
-      acc[s] = (acc[s] || 0) + 1;
-      return acc;
-    }, {})
-)
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 5)
-  .map(([strategy, count]) => `${strategy}: ${count} times`)
-  .join('\n') || 'No strategies tracked'}
-
-DETAILED ENTRIES
-${'='.repeat(70)}
-${filteredEntries
-  .map(e => `
-Date: ${new Date(e.date).toLocaleDateString()} at ${e.time}
-Type: ${e.type.replace('_', ' ').toUpperCase()}
-${e.urgeIntensity ? `Urge Intensity: ${e.urgeIntensity}/10` : ''}
-${e.resistanceStrength ? `Resistance Strength: ${e.resistanceStrength}/10` : ''}
-${e.amountLost ? `Amount Lost: ₦${e.amountLost.toLocaleString()}` : ''}
-${e.moneyNotSpent ? `Money Not Spent: ₦${e.moneyNotSpent.toLocaleString()}` : ''}
-Triggers: ${e.triggers?.join(', ') || 'None'}
-Coping Strategies: ${e.copingStrategies?.join(', ') || 'None'}
-Mood: ${e.mood}
-Notes: ${e.notes || 'No notes'}
-`)
-  .join('\n' + '-'.repeat(70) + '\n')}
-
-EMERGENCY RESOURCES
-${'-'.repeat(70)}
-${emergencyHotlines.map(h => `${h.name}: ${h.number}`).join('\n')}
-
-Stay strong! Every day clean is a victory. 💪
-    `;
-
-    const blob = new Blob([reportText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `gambling-recovery-report-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [filteredEntries, filterPeriod, stats]);
-
-  const exportJSON = useCallback(() => {
-    try {
-      const data = JSON.stringify(entries, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `gambling-recovery-data-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting JSON:', error);
-      alert('Failed to export data. Please try again.');
-    }
-  }, [entries]);
-
-  const getEntryTypeConfig = (type) => {
-    return entryTypes.find(t => t.value === type) || entryTypes[0];
+// ─── Stepper ─────────────────────────────────────────────────────────────────
+const Stepper = ({ value, onChange, min=0, max=10, step=1, color=C.victory, label="", size="md" }) => {
+  const hold = useRef(null);
+  const go = dir => {
+    onChange(v => clamp(+(v+dir*step).toFixed(1), min, max));
+    hold.current = setTimeout(() => {
+      hold.current = setInterval(() => onChange(v => clamp(+(v+dir*step).toFixed(1), min, max)), 75);
+    }, 360);
   };
-
-  // ==================== RENDER ====================
+  const stop = () => { clearTimeout(hold.current); clearInterval(hold.current); };
+  useEffect(() => () => stop(), []);
+  const h = size==="sm"?38:50;
   return (
-    <div className="app-root">
-      <div className="main-layout-wrapper">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="flex justify-between items-start mb-3">
+    <div style={{display:"flex",alignItems:"center",background:C.surface,border:`1.5px solid ${C.border}`,borderRadius:10,overflow:"hidden",width:"100%"}}>
+      <button onMouseDown={()=>go(-1)} onMouseUp={stop} onMouseLeave={stop} onTouchStart={()=>go(-1)} onTouchEnd={stop}
+        disabled={value<=min} style={{width:h,height:h,background:"none",border:"none",color:value<=min?C.dim:color,cursor:value<=min?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <Minus size={size==="sm"?12:15}/>
+      </button>
+      <div style={{flex:1,textAlign:"center"}}>
+        <span style={{fontSize:size==="sm"?17:26,fontWeight:800,color:C.text,fontVariantNumeric:"tabular-nums",letterSpacing:"-1px"}}>
+          {Number.isInteger(value)?value:value.toFixed(1)}
+        </span>
+        {label&&<span style={{fontSize:11,color:C.muted,marginLeft:3}}>{label}</span>}
+      </div>
+      <button onMouseDown={()=>go(1)} onMouseUp={stop} onMouseLeave={stop} onTouchStart={()=>go(1)} onTouchEnd={stop}
+        disabled={value>=max} style={{width:h,height:h,background:"none",border:"none",color:value>=max?C.dim:color,cursor:value>=max?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <Plus size={size==="sm"?12:15}/>
+      </button>
+    </div>
+  );
+};
+
+// ─── Streak ring ─────────────────────────────────────────────────────────────
+const StreakRing = ({ days, size=120 }) => {
+  const max = 30, pct = Math.min(days/max,1);
+  const r=48, cx=60, cy=60;
+  const toRad = a => (a*Math.PI)/180;
+  const start = -90, sweep = 360*pct;
+  const end = start+sweep;
+  const pt = a => ({ x: cx+r*Math.cos(toRad(a)), y: cy+r*Math.sin(toRad(a)) });
+  const s = pt(start), e = pt(end), large = sweep>180?1:0;
+  const col = days>=30?C.gold:days>=7?C.victory:days>=1?C.sapphire:C.muted;
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 120">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={C.border} strokeWidth={10}/>
+      {pct>0&&<path d={`M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}`} fill="none" stroke={col} strokeWidth={10} strokeLinecap="round" style={{filter:`drop-shadow(0 0 8px ${col}88)`}}/>}
+      <text x={cx} y={cy-8} textAnchor="middle" style={{fontSize:24,fontWeight:900,fill:col,fontFamily:"inherit",letterSpacing:"-1px"}}>{days}</text>
+      <text x={cx} y={cy+10} textAnchor="middle" style={{fontSize:9,fill:C.muted,fontFamily:"inherit",textTransform:"uppercase",letterSpacing:".06em"}}>days</text>
+      <text x={cx} y={cy+22} textAnchor="middle" style={{fontSize:8,fill:C.dim,fontFamily:"inherit"}}>clean</text>
+    </svg>
+  );
+};
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+const Toast = ({ msg, type, onDone }) => {
+  useEffect(() => { const t=setTimeout(onDone,2800); return ()=>clearTimeout(t); }, []);
+  const col = type==="success"?C.victory:type==="error"?C.relapse:C.warning;
+  return (
+    <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,background:C.cardHi,border:`1px solid ${col}`,borderRadius:12,padding:"12px 18px",color:C.text,fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:8,boxShadow:`0 4px 24px #0009`,animation:"slideUp .2s ease",maxWidth:320}}>
+      <div style={{width:7,height:7,borderRadius:"50%",background:col}}/>
+      {msg}
+    </div>
+  );
+};
+
+// ─── Confirm dialog ───────────────────────────────────────────────────────────
+const Confirm = ({ msg, onOk, onCancel }) => (
+  <div style={{position:"fixed",inset:0,background:"#000c",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+    <div style={{background:C.card,border:`1px solid ${C.borderHi}`,borderRadius:16,padding:26,maxWidth:380,width:"100%"}}>
+      <p style={{color:C.text,fontSize:14,lineHeight:1.75,marginBottom:22}}>{msg}</p>
+      <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+        <button onClick={onCancel} style={{padding:"8px 18px",borderRadius:8,background:C.border,border:"none",color:C.text,fontSize:13,cursor:"pointer"}}>Cancel</button>
+        <button onClick={onOk} style={{padding:"8px 18px",borderRadius:8,background:C.relapse,border:"none",color:"#060810",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
+          <Trash2 size={13}/>Delete
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Custom chart tooltip ─────────────────────────────────────────────────────
+const VTooltip = ({ active, payload, label }) => {
+  if (!active||!payload?.length) return null;
+  return (
+    <div style={{background:C.cardHi,border:`1px solid ${C.borderHi}`,borderRadius:10,padding:"10px 14px",fontSize:12}}>
+      <p style={{color:C.muted,marginBottom:4,fontWeight:600}}>{label}</p>
+      {payload.map((p,i)=><p key={i} style={{color:p.color||C.text,margin:"2px 0",fontWeight:700}}>{p.name}: {p.value}</p>)}
+    </div>
+  );
+};
+
+// ─── AI Insights ─────────────────────────────────────────────────────────────
+const AIInsights = ({ entries }) => {
+  const [text,    setText]    = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
+  const [open,    setOpen]    = useState(false);
+
+  const run = useCallback(async () => {
+    setLoading(true); setError(null); setOpen(true); setText(null);
+    const sample = entries.slice(0,14).map(e =>
+      `${e.date}: type=${e.type} urge=${e.urgeIntensity||0}/10 resistance=${e.resistanceStrength||0}/10 mood=${e.mood} triggers=[${(e.triggers||[]).join(",")||"none"}] coping=[${(e.coping||e.copingStrategies||[]).join(",")||"none"}] lost=${e.amountLost||0} saved=${e.moneyNotSpent||0}`
+    ).join("\n");
+
+    const prompt = `You are a compassionate addiction recovery coach specialising in gambling disorder. Analyse this person's recovery tracking data with warmth and evidence-based insight. Respond in exactly 4 paragraphs (2-3 sentences each):
+1) Pattern analysis — urge patterns, timing, recovery progress trends
+2) Key risk factors identified — triggers, high-risk situations, warning signs
+3) Strengths and what's working well — effective coping strategies, resilience moments
+4) Specific, actionable next steps for the coming week to strengthen recovery
+
+Be warm, non-judgmental, and hopeful. Acknowledge the courage it takes to track this data. Do NOT shame or judge relapses — frame them as learning opportunities. Always recommend professional support for clinical needs.
+
+RECOVERY DATA (last 14 entries):
+${sample}`;
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:900,messages:[{role:"user",content:prompt}]})
+      });
+      if (!res.ok) throw new Error(`API ${res.status}`);
+      const d = await res.json();
+      setText(d.content?.find(b=>b.type==="text")?.text??"No response.");
+    } catch(e) { setError(e.message); }
+    finally { setLoading(false); }
+  },[entries]);
+
+  const ICONS  = [TrendingUp, AlertCircle, Heart, Sparkles];
+  const COLORS = [C.victory, C.warning, C.sapphire, C.violet];
+
+  return (
+    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,overflow:"hidden"}}>
+      <button onClick={open?()=>setOpen(false):run}
+        style={{width:"100%",padding:"18px 22px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:14,textAlign:"left"}}>
+        <div style={{width:42,height:42,borderRadius:11,background:`${C.violet}18`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <Brain size={19} color={C.violet}/>
+        </div>
+        <div style={{flex:1}}>
+          <p style={{fontSize:14,fontWeight:700,color:C.text,margin:0}}>AI Recovery Coach Insights</p>
+          <p style={{fontSize:12,color:C.muted,margin:"3px 0 0"}}>Pattern analysis across {entries.length} tracked entr{entries.length===1?"y":"ies"}</p>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {!open&&<span style={{fontSize:11,fontWeight:700,color:C.violet,background:`${C.violet}18`,padding:"4px 12px",borderRadius:99}}>Analyse</span>}
+          {open?<ChevronUp size={16} color={C.muted}/>:<ChevronDown size={16} color={C.muted}/>}
+        </div>
+      </button>
+      {open&&(
+        <div style={{padding:"0 22px 22px",borderTop:`1px solid ${C.border}`}}>
+          {loading&&(
+            <div style={{display:"flex",alignItems:"center",gap:12,padding:"22px 0"}}>
+              <div style={{width:18,height:18,border:`2px solid ${C.violet}`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+              <span style={{fontSize:13,color:C.muted}}>Reviewing your recovery journey…</span>
+            </div>
+          )}
+          {error&&(
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:14,background:`${C.relapse}15`,borderRadius:10,marginTop:14}}>
+              <AlertCircle size={15} color={C.relapse}/>
+              <p style={{fontSize:13,color:C.relapse,margin:0,flex:1}}>{error}</p>
+              <button onClick={run} style={{background:`${C.violet}22`,border:"none",color:C.violet,fontSize:12,padding:"5px 10px",borderRadius:6,cursor:"pointer",display:"flex",alignItems:"center",gap:4}}><RefreshCw size={11}/>Retry</button>
+            </div>
+          )}
+          {text&&!loading&&(
+            <div style={{marginTop:16,display:"flex",flexDirection:"column",gap:12}}>
+              {text.split("\n\n").filter(Boolean).map((para,i)=>{
+                const Icon=ICONS[i]||Brain, col=COLORS[i]||C.muted;
+                return (
+                  <div key={i} style={{display:"flex",gap:12,padding:"14px 16px",background:`${col}0a`,borderRadius:10,borderLeft:`2px solid ${col}`}}>
+                    <Icon size={14} color={col} style={{flexShrink:0,marginTop:3}}/>
+                    <p style={{fontSize:13,color:i===0?C.text:C.muted,lineHeight:1.8,margin:0}}>{para}</p>
+                  </div>
+                );
+              })}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4,paddingTop:12,borderTop:`1px solid ${C.border}`}}>
+                <p style={{fontSize:11,color:C.muted,fontStyle:"italic",margin:0}}>These insights support—not replace—professional addiction counselling.</p>
+                <button onClick={run} style={{background:`${C.violet}15`,border:`1px solid ${C.violet}44`,color:C.violet,fontSize:12,fontWeight:600,padding:"7px 14px",borderRadius:8,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}><RefreshCw size={12}/>Re-analyse</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Entry Log Modal ──────────────────────────────────────────────────────────
+const EntryModal = ({ initial, daysClean, onSave, onClose }) => {
+  const [fd, setFd] = useState(initial||{...BLANK});
+  const set = (k,v) => setFd(p=>({...p,[k]:v}));
+  const toggleArr = (k,v) => set(k, fd[k].includes(v)?fd[k].filter(x=>x!==v):[...fd[k],v]);
+
+  const tc = getTypeConfig(fd.type);
+  const inp = {width:"100%",background:C.surface,border:`1.5px solid ${C.border}`,borderRadius:10,padding:"10px 13px",color:C.text,fontSize:13,outline:"none",boxSizing:"border-box"};
+  const lbl = {display:"block",fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".08em",marginBottom:5};
+  const copingKey = "coping";
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000d",zIndex:8000,overflowY:"auto",padding:"20px 16px",display:"flex",alignItems:"flex-start",justifyContent:"center"}}>
+      <div style={{background:C.card,border:`1px solid ${C.borderHi}`,borderRadius:20,width:"100%",maxWidth:600,padding:28}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:44,height:44,borderRadius:12,background:tc.dim,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <tc.Icon size={20} color={tc.color}/>
+            </div>
             <div>
-              <h1 className="text-3xl font-semibold mb-3" style={{ color: '#4a5568' }}>
-                Gambling Addiction Recovery Tracker
-              </h1>
-              <p style={{ color: '#718096', fontSize: '16px' }}>
-                Track your recovery journey, resist urges, and celebrate victories
-              </p>
+              <p style={{fontSize:18,fontWeight:800,color:C.text,margin:0}}>{initial?"Edit Entry":"Log Recovery Entry"}</p>
+              <p style={{fontSize:12,color:C.muted,margin:"3px 0 0"}}>Every entry helps your recovery</p>
             </div>
-            <Button
-              onClick={() => setShowEmergencyHelp(true)}
-              variant="danger"
-              className="flex items-center gap-2"
-            >
-              <Phone className="w-5 h-5" />
-              Emergency Help
-            </Button>
           </div>
+          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:C.muted}}><X size={18}/></button>
         </div>
 
-        {/* Emergency Help Modal */}
-        {showEmergencyHelp && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <Card className="max-w-2xl w-full p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold" style={{ color: '#c87355' }}>
-                  <AlertTriangle className="w-6 h-6 inline mr-2" />
-                  Emergency Support Resources
-                </h2>
-                <button
-                  onClick={() => setShowEmergencyHelp(false)}
-                  className="p-2 hover:bg-slate-100 rounded-lg"
-                >
-                  <X className="w-6 h-6" style={{ color: '#718096' }} />
+        <div style={{display:"flex",flexDirection:"column",gap:18}}>
+          {/* Entry type */}
+          <div>
+            <label style={lbl}>Entry Type</label>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+              {ENTRY_TYPES.map(t=>(
+                <button key={t.value} onClick={()=>set("type",t.value)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"12px 8px",borderRadius:12,cursor:"pointer",background:fd.type===t.value?t.dim:C.surface,border:`1.5px solid ${fd.type===t.value?t.color:C.border}`,color:fd.type===t.value?t.color:C.muted,transition:"all .13s",fontSize:12,fontWeight:700}}>
+                  <t.Icon size={18}/>{t.label}
                 </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Urge + Resistance steppers */}
+          {fd.type!=="relapse"&&(
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+              <div>
+                <label style={lbl}>Urge Intensity (1–10)</label>
+                <Stepper value={fd.urgeIntensity} onChange={fn=>set("urgeIntensity",typeof fn==="function"?fn(fd.urgeIntensity):fn)} min={1} max={10} color={C.relapse}/>
               </div>
+              <div>
+                <label style={lbl}>Resistance Strength (1–10)</label>
+                <Stepper value={fd.resistanceStrength} onChange={fn=>set("resistanceStrength",typeof fn==="function"?fn(fd.resistanceStrength):fn)} min={1} max={10} color={C.victory}/>
+              </div>
+            </div>
+          )}
 
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl" style={{ background: '#fce8e8', border: '2px solid #c87355' }}>
-                  <p className="font-semibold mb-2" style={{ color: '#c87355' }}>
-                    If you're experiencing a gambling crisis, help is available NOW:
-                  </p>
-                </div>
-
-                {emergencyHotlines.map((hotline, idx) => (
-                  <a
-                    key={idx}
-                    href={`tel:${hotline.number}`}
-                    className="flex items-center gap-4 p-4 rounded-xl hover:shadow-md transition"
-                    style={{ background: '#e8f0ed', border: '2px solid #6b8e7f' }}
-                  >
-                    <Phone className="w-6 h-6" style={{ color: '#6b8e7f' }} />
-                    <div className="flex-1">
-                      <p className="font-semibold" style={{ color: '#4a5568' }}>
-                        {hotline.name}
-                      </p>
-                      <p className="text-sm" style={{ color: '#718096' }}>
-                        {hotline.type === 'local' ? 'Local Support' : 
-                         hotline.type === 'national' ? 'National Helpline' :
-                         hotline.type === 'emergency' ? 'Emergency Line' : 'Mental Health'}
-                      </p>
-                    </div>
-                    <p className="text-xl font-bold" style={{ color: '#6b8e7f' }}>
-                      {hotline.number}
-                    </p>
-                  </a>
+          {/* Money not spent */}
+          {fd.type!=="relapse"&&(
+            <div>
+              <label style={lbl}>Money Not Spent (₦)</label>
+              <div style={{display:"flex",alignItems:"center",background:C.surface,border:`1.5px solid ${C.border}`,borderRadius:10,overflow:"hidden"}}>
+                <button onClick={()=>set("moneyNotSpent",Math.max(0,(fd.moneyNotSpent||0)-500))} style={{width:46,height:46,background:"none",border:"none",color:C.muted,cursor:"pointer",fontSize:18}}>−</button>
+                <input type="number" value={fd.moneyNotSpent||0} onChange={e=>set("moneyNotSpent",parseInt(e.target.value)||0)} style={{flex:1,background:"none",border:"none",color:C.text,fontSize:16,fontWeight:700,textAlign:"center",outline:"none"}}/>
+                <button onClick={()=>set("moneyNotSpent",(fd.moneyNotSpent||0)+500)} style={{width:46,height:46,background:"none",border:"none",color:C.victory,cursor:"pointer",fontSize:18}}>+</button>
+              </div>
+              <div style={{display:"flex",gap:6,marginTop:7,flexWrap:"wrap"}}>
+                {[1000,2000,5000,10000,20000].map(v=>(
+                  <button key={v} onClick={()=>set("moneyNotSpent",v)} style={{padding:"4px 10px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",background:fd.moneyNotSpent===v?`${C.victory}18`:C.surface,border:`1px solid ${fd.moneyNotSpent===v?C.victory:C.border}`,color:fd.moneyNotSpent===v?C.victory:C.muted}}>₦{(v/1000)}k</button>
                 ))}
-
-                <div className="p-4 rounded-xl" style={{ background: '#fff9f0' }}>
-                  <p className="text-sm" style={{ color: '#718096' }}>
-                    <strong>You're not alone.</strong> Recovery is possible. These resources are here to help you 24/7.
-                  </p>
-                </div>
               </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Recovery Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Days Clean */}
-          <Card className="p-6" style={{ background: 'linear-gradient(135deg, #e8f0ed 0%, #d0e8db 100%)' }}>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: '#4a7365' }}>
-                  Days Clean
-                </p>
-                <p className="text-4xl font-bold mb-1" style={{ color: '#6b8e7f' }}>
-                  {stats.daysClean}
-                </p>
-                <p className="text-xs" style={{ color: '#5a7d6f' }}>
-                  Keep going strong! 💪
-                </p>
-              </div>
-              <Award className="w-10 h-10" style={{ color: '#6b8e7f', opacity: 0.7 }} />
             </div>
-          </Card>
-
-          {/* Resistance Rate */}
-          <Card className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: '#9ca3af' }}>
-                  Resistance Rate
-                </p>
-                <p className="text-4xl font-bold mb-1" style={{ color: '#6b8e7f' }}>
-                  {stats.resistanceRate}%
-                </p>
-                <p className="text-xs" style={{ color: '#718096' }}>
-                  {stats.totalResisted} urges resisted
-                </p>
-              </div>
-              <Shield className="w-10 h-10" style={{ color: '#6b8e7f', opacity: 0.6 }} />
-            </div>
-          </Card>
-
-          {/* Money Saved */}
-          <Card className="p-6" style={{ background: 'linear-gradient(135deg, #e8f0ed 0%, #e5f0eb 100%)' }}>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: '#9ca3af' }}>
-                  Money Saved
-                </p>
-                <p className="text-3xl font-bold mb-1" style={{ color: '#6b8e7f' }}>
-                  ₦{stats.totalMoneySaved.toLocaleString()}
-                </p>
-                <p className="text-xs" style={{ color: '#718096' }}>
-                  By resisting urges
-                </p>
-              </div>
-              <DollarSign className="w-10 h-10" style={{ color: '#6b8e7f', opacity: 0.6 }} />
-            </div>
-          </Card>
-
-          {/* Net Savings */}
-          <Card className="p-6" style={{ 
-            background: stats.netSavings >= 0 
-              ? 'linear-gradient(135deg, #e8f0ed 0%, #d0e8db 100%)'
-              : 'linear-gradient(135deg, #fce8e8 0%, #fef5e8 100%)'
-          }}>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: '#9ca3af' }}>
-                  Net Savings
-                </p>
-                <p className="text-3xl font-bold mb-1" style={{ 
-                  color: stats.netSavings >= 0 ? '#6b8e7f' : '#c87355' 
-                }}>
-                  ₦{Math.abs(stats.netSavings).toLocaleString()}
-                </p>
-                <p className="text-xs" style={{ color: '#718096' }}>
-                  {stats.netSavings >= 0 ? 'Ahead!' : 'Lost in relapses'}
-                </p>
-              </div>
-              {stats.netSavings >= 0 ? (
-                <TrendingUp className="w-10 h-10" style={{ color: '#6b8e7f', opacity: 0.6 }} />
-              ) : (
-                <TrendingDown className="w-10 h-10" style={{ color: '#c87355', opacity: 0.6 }} />
-              )}
-            </div>
-          </Card>
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Urge Intensity Chart */}
-          {chartData.length > 0 && (
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4" style={{ color: '#4a5568' }}>
-                Urge Intensity & Resistance
-              </h2>
-              <div style={{ height: 250 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsLineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e8e5df" />
-                    <XAxis dataKey="date" tick={{ fill: '#718096', fontSize: 12 }} stroke="#d4cfc4" />
-                    <YAxis domain={[0, 10]} tick={{ fill: '#718096', fontSize: 12 }} stroke="#d4cfc4" />
-                    <Tooltip contentStyle={{ background: '#fafaf8', border: '1px solid #d4cfc4', borderRadius: '8px' }} />
-                    <Legend />
-                    <RechartsLine 
-                      type="monotone" 
-                      dataKey="urgeIntensity" 
-                      stroke="#c87355" 
-                      strokeWidth={2} 
-                      name="Urge Intensity"
-                      dot={{ r: 4 }}
-                    />
-                    <RechartsLine 
-                      type="monotone" 
-                      dataKey="resistanceStrength" 
-                      stroke="#6b8e7f" 
-                      strokeWidth={2} 
-                      name="Resistance"
-                      dot={{ r: 4 }}
-                    />
-                  </RechartsLineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
           )}
 
-          {/* Money Chart */}
-          {moneyChartData.length > 0 && (
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4" style={{ color: '#4a5568' }}>
-                Money Saved vs Lost
-              </h2>
-              <div style={{ height: 250 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={moneyChartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e8e5df" />
-                    <XAxis dataKey="date" tick={{ fill: '#718096', fontSize: 12 }} stroke="#d4cfc4" />
-                    <YAxis tick={{ fill: '#718096', fontSize: 12 }} stroke="#d4cfc4" />
-                    <Tooltip contentStyle={{ background: '#fafaf8', border: '1px solid #d4cfc4', borderRadius: '8px' }} />
-                    <Legend />
-                    <Bar dataKey="saved" fill="#6b8e7f" name="Saved (₦)" />
-                    <Bar dataKey="lost" fill="#c87355" name="Lost (₦)" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
+          {/* Relapse fields */}
+          {fd.type==="relapse"&&(
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+              {[{k:"amountLost",l:"Amount Lost (₦)",col:C.relapse},{k:"amountWon",l:"Amount Won (₦)",col:C.victory},{k:"duration",l:"Duration (mins)",col:C.warning}].map(({k,l,col})=>(
+                <div key={k}>
+                  <label style={lbl}>{l}</label>
+                  <div style={{display:"flex",alignItems:"center",background:C.surface,border:`1.5px solid ${C.border}`,borderRadius:10,overflow:"hidden"}}>
+                    <button onClick={()=>set(k,Math.max(0,(fd[k]||0)-(k==="duration"?5:1000)))} style={{width:36,height:40,background:"none",border:"none",color:C.muted,cursor:"pointer"}}>−</button>
+                    <input type="number" value={fd[k]||0} onChange={e=>set(k,parseInt(e.target.value)||0)} style={{flex:1,background:"none",border:"none",color:col,fontSize:14,fontWeight:700,textAlign:"center",outline:"none"}}/>
+                    <button onClick={()=>set(k,(fd[k]||0)+(k==="duration"?5:1000))} style={{width:36,height:40,background:"none",border:"none",color:col,cursor:"pointer"}}>+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
-        </div>
 
-        {/* Filters & Actions */}
-        <div className="mb-8 flex flex-col lg:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-3 w-5 h-5" style={{ color: '#9ca3af' }} />
-            <input
-              type="text"
-              placeholder="Search entries..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 focus:outline-none focus:border-teal-500 transition"
-              style={{ background: '#fafaf8', border: '2px solid #d4cfc4', color: '#4a5568' }}
-            />
+          {/* Triggers */}
+          <div>
+            <label style={lbl}>What Triggered This?</label>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {TRIGGERS.map(t=>{
+                const on=fd.triggers.includes(t);
+                return <button key={t} onClick={()=>toggleArr("triggers",t)} style={{padding:"5px 11px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",background:on?`${C.relapse}18`:C.surface,border:`1px solid ${on?C.relapse:C.border}`,color:on?C.relapse:C.muted,transition:"all .12s"}}>{t}</button>;
+              })}
+            </div>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
-            {['all', 'week', 'month'].map(period => (
-              <Button
-                key={period}
-                variant={filterPeriod === period ? 'primary' : 'secondary'}
-                onClick={() => setFilterPeriod(period)}
-                className="px-4 py-2"
-              >
-                {period === 'all' ? 'All Time' : period === 'week' ? 'This Week' : 'This Month'}
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={downloadReport} variant="secondary" className="px-4 py-2">
-              <Download className="w-4 h-4 mr-2" />
-              Report
-            </Button>
-            <Button onClick={exportJSON} variant="secondary" className="px-4 py-2">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <Button 
-              onClick={() => {
-                setShowAddForm(true);
-                setEditingId(null);
-                resetForm();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }} 
-              variant="primary"
-              className="px-4 py-2"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Log Entry
-            </Button>
-          </div>
-        </div>
-
-        {/* Add/Edit Form */}
-        {showAddForm && (
-          <Card className="mb-8 p-6" style={{ background: 'linear-gradient(to br, #fafaf8, #f5f3ef)' }}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold" style={{ color: '#4a5568' }}>
-                {editingId ? 'Edit Entry' : 'Log Recovery Entry'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowAddForm(false);
-                  setEditingId(null);
-                  resetForm();
-                }}
-                className="p-2 hover:bg-slate-100 rounded-lg transition"
-              >
-                <X className="w-6 h-6" style={{ color: '#718096' }} />
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {/* Date & Time */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                    <Calendar className="w-4 h-4 inline mr-2" />
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
-                    style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                    <Clock className="w-4 h-4 inline mr-2" />
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.time}
-                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
-                    style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
-                  />
-                </div>
-              </div>
-
-              {/* Entry Type */}
-              <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: '#4a5568' }}>
-                  Entry Type
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {entryTypes.map(type => {
-                    const TypeIcon = type.icon;
-                    return (
-                      <button
-                        key={type.value}
-                        onClick={() => setFormData({ ...formData, type: type.value })}
-                        className="flex items-center gap-3 p-4 rounded-xl transition transform hover:scale-105"
-                        style={{
-                          background: formData.type === type.value ? type.bg : '#f0ebe4',
-                          color: formData.type === type.value ? type.color : '#a0947d',
-                          border: formData.type === type.value ? `2px solid ${type.color}` : '2px solid #d4cfc4',
-                          boxShadow: formData.type === type.value ? '0 4px 6px rgba(0,0,0,0.1)' : 'none'
-                        }}
-                      >
-                        <TypeIcon className="w-6 h-6" />
-                        <span className="font-semibold">{type.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Conditional Fields based on Entry Type */}
-              {formData.type === 'urge_resisted' && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <div className="flex justify-between items-center mb-3">
-                        <label style={{ color: '#4a5568' }} className="font-medium text-sm">
-                          Urge Intensity
-                        </label>
-                        <span style={{ color: '#c87355' }} className="font-bold text-lg">
-                          {formData.urgeIntensity}/10
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        value={formData.urgeIntensity}
-                        onChange={(e) => setFormData({ ...formData, urgeIntensity: parseInt(e.target.value) })}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-3">
-                        <label style={{ color: '#4a5568' }} className="font-medium text-sm">
-                          Resistance Strength
-                        </label>
-                        <span style={{ color: '#6b8e7f' }} className="font-bold text-lg">
-                          {formData.resistanceStrength}/10
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        value={formData.resistanceStrength}
-                        onChange={(e) => setFormData({ ...formData, resistanceStrength: parseInt(e.target.value) })}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                      Money Not Spent (₦)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.moneyNotSpent}
-                      onChange={(e) => setFormData({ ...formData, moneyNotSpent: parseInt(e.target.value) || 0 })}
-                      placeholder="How much did you save by not gambling?"
-                      className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
-                      style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
-                    />
-                  </div>
-                </>
-              )}
-
-              {formData.type === 'relapse' && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                      Amount Lost (₦)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.amountLost}
-                      onChange={(e) => setFormData({ ...formData, amountLost: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
-                      style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                      Amount Won (₦)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.amountWon}
-                      onChange={(e) => setFormData({ ...formData, amountWon: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
-                      style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                      Duration (minutes)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
-                      className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500"
-                      style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Triggers */}
-              <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: '#4a5568' }}>
-                  What Triggered This?
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {triggerOptions.map(trigger => (
-                    <button
-                      key={trigger}
-                      onClick={() => toggleTrigger(trigger)}
-                      className="px-3 py-2 rounded-lg text-sm transition"
-                      style={{
-                        background: formData.triggers.includes(trigger) ? '#fce8e8' : '#f0ebe4',
-                        color: formData.triggers.includes(trigger) ? '#c87355' : '#a0947d',
-                        border: formData.triggers.includes(trigger) ? '2px solid #c87355' : '2px solid #d4cfc4',
-                        fontWeight: formData.triggers.includes(trigger) ? '600' : '400'
-                      }}
-                    >
-                      {trigger}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Coping Strategies */}
-              {formData.type !== 'relapse' && (
-                <div>
-                  <label className="block text-sm font-medium mb-3" style={{ color: '#4a5568' }}>
-                    How Did You Cope?
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {copingStrategyOptions.map(strategy => (
-                      <button
-                        key={strategy}
-                        onClick={() => toggleCopingStrategy(strategy)}
-                        className="px-3 py-2 rounded-lg text-sm transition"
-                        style={{
-                          background: formData.copingStrategies.includes(strategy) ? '#e8f0ed' : '#f0ebe4',
-                          color: formData.copingStrategies.includes(strategy) ? '#6b8e7f' : '#a0947d',
-                          border: formData.copingStrategies.includes(strategy) ? '2px solid #6b8e7f' : '2px solid #d4cfc4',
-                          fontWeight: formData.copingStrategies.includes(strategy) ? '600' : '400'
-                        }}
-                      >
-                        {strategy}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Mood */}
-              <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: '#4a5568' }}>
-                  How Were You Feeling?
-                </label>
-                <select
-                  value={formData.mood}
-                  onChange={(e) => setFormData({ ...formData, mood: e.target.value })}
-                  className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500 capitalize"
-                  style={{ background: '#fafaf8', border: '2px solid #d4cfc4', color: '#4a5568' }}
-                >
-                  {moodOptions.map(mood => (
-                    <option key={mood} value={mood} className="capitalize">
-                      {mood}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#4a5568' }}>
-                  Notes
-                </label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="What happened? How did you feel? What helped? What would you do differently?"
-                  rows="4"
-                  className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:border-teal-500 resize-none"
-                  style={{ background: '#fafaf8', border: '2px solid #d4cfc4', color: '#4a5568' }}
-                />
+          {/* Coping */}
+          {fd.type!=="relapse"&&(
+            <div>
+              <label style={lbl}>How Did You Cope?</label>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {COPING.map(s=>{
+                  const on=fd[copingKey].includes(s);
+                  return <button key={s} onClick={()=>toggleArr(copingKey,s)} style={{padding:"5px 11px",borderRadius:8,fontSize:11,fontWeight:600,cursor:"pointer",background:on?`${C.victory}18`:C.surface,border:`1px solid ${on?C.victory:C.border}`,color:on?C.victory:C.muted,transition:"all .12s"}}>{s}</button>;
+                })}
               </div>
             </div>
-
-            <div className="flex gap-4 mt-8">
-              <Button onClick={handleAddEntry} variant="primary" className="flex-1 md:flex-none">
-                {editingId ? 'Update Entry' : 'Save Entry'}
-              </Button>
-              <Button 
-                onClick={() => {
-                  setShowAddForm(false);
-                  setEditingId(null);
-                  resetForm();
-                }} 
-                variant="secondary"
-              >
-                Cancel
-              </Button>
-            </div>
-          </Card>
-        )}
-
-        {/* Entries Timeline */}
-        <div className="space-y-4">
-          {filteredEntries.length === 0 ? (
-            <Card className="text-center py-16">
-              <Shield className="w-16 h-16 mx-auto mb-4" style={{ color: '#d4cfc4' }} />
-              <p className="text-xl font-medium mb-2" style={{ color: '#4a5568' }}>
-                No entries found
-              </p>
-              <p style={{ color: '#718096', fontSize: '16px' }}>
-                {searchTerm ? 'Try adjusting your search or filters' : 'Start tracking your recovery journey!'}
-              </p>
-            </Card>
-          ) : (
-            filteredEntries.map(entry => {
-              const typeConfig = getEntryTypeConfig(entry.type);
-              const TypeIcon = typeConfig.icon;
-              const isExpanded = expandedEntry === entry.id;
-
-              return (
-                <Card
-                  key={entry.id}
-                  className="overflow-hidden transition-all hover:shadow-lg"
-                  style={{ 
-                    cursor: 'pointer',
-                    borderLeft: `4px solid ${typeConfig.color}`
-                  }}
-                >
-                  <div 
-                    className="p-6"
-                    onClick={() => setExpandedEntry(isExpanded ? null : entry.id)}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-3">
-                          <div 
-                            className="p-3 rounded-xl"
-                            style={{ background: typeConfig.bg }}
-                          >
-                            <TypeIcon className="w-8 h-8" style={{ color: typeConfig.color }} />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2 flex-wrap">
-                              <h3 className="text-2xl font-semibold" style={{ color: '#4a5568' }}>
-                                {typeConfig.label}
-                              </h3>
-                              <span
-                                className="px-3 py-1 rounded-full text-sm font-semibold"
-                                style={{
-                                  background: typeConfig.bg,
-                                  color: typeConfig.color,
-                                  border: `2px solid ${typeConfig.color}`
-                                }}
-                              >
-                                {entry.mood}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm flex-wrap" style={{ color: '#718096' }}>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                {new Date(entry.date).toLocaleDateString('en-US', { 
-                                  weekday: 'short', 
-                                  month: 'short', 
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {entry.time}
-                              </div>
-                              {entry.daysClean !== undefined && (
-                                <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ background: '#e8f0ed', color: '#6b8e7f' }}>
-                                  <Award className="w-4 h-4" />
-                                  {entry.daysClean} days clean
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="flex gap-6 text-sm flex-wrap">
-                          {entry.urgeIntensity && (
-                            <div style={{ color: '#c87355' }}>
-                              <span className="font-medium">Urge:</span> <span className="font-bold">{entry.urgeIntensity}/10</span>
-                            </div>
-                          )}
-                          {entry.resistanceStrength && (
-                            <div style={{ color: '#6b8e7f' }}>
-                              <span className="font-medium">Resistance:</span> <span className="font-bold">{entry.resistanceStrength}/10</span>
-                            </div>
-                          )}
-                          {entry.moneyNotSpent > 0 && (
-                            <div style={{ color: '#6b8e7f' }}>
-                              <span className="font-medium">Saved:</span> <span className="font-bold">₦{entry.moneyNotSpent.toLocaleString()}</span>
-                            </div>
-                          )}
-                          {entry.amountLost > 0 && (
-                            <div style={{ color: '#c87355' }}>
-                              <span className="font-medium">Lost:</span> <span className="font-bold">₦{entry.amountLost.toLocaleString()}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditEntry(entry);
-                          }}
-                          className="p-2 hover:bg-slate-100 rounded-lg transition"
-                        >
-                          <Edit2 className="w-5 h-5" style={{ color: '#718096' }} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteEntry(entry.id);
-                          }}
-                          className="p-2 hover:bg-red-50 rounded-lg transition"
-                        >
-                          <Trash2 className="w-5 h-5" style={{ color: '#c87355' }} />
-                        </button>
-                        <button
-                          className="p-2 transition"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpandedEntry(isExpanded ? null : entry.id);
-                          }}
-                        >
-                          <ChevronDown
-                            className="w-5 h-5"
-                            style={{
-                              color: '#718096',
-                              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
-                              transition: 'transform 0.3s'
-                            }}
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expanded Details */}
-                  {isExpanded && (
-                    <div 
-                      className="px-6 pb-6 pt-4 space-y-4"
-                      style={{ borderTop: '2px solid #e8e5df' }}
-                    >
-                      {/* Triggers */}
-                      {entry.triggers && entry.triggers.length > 0 && (
-                        <div>
-                          <p className="text-xs font-bold mb-2" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
-                            TRIGGERS
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {entry.triggers.map((trigger, idx) => (
-                              <span
-                                key={idx}
-                                className="px-3 py-1 rounded-full text-sm font-medium"
-                                style={{
-                                  background: '#fce8e8',
-                                  color: '#c87355',
-                                  border: '1px solid #c8735540'
-                                }}
-                              >
-                                {trigger}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Coping Strategies */}
-                      {entry.copingStrategies && entry.copingStrategies.length > 0 && (
-                        <div>
-                          <p className="text-xs font-bold mb-2" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
-                            COPING STRATEGIES
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {entry.copingStrategies.map((strategy, idx) => (
-                              <span
-                                key={idx}
-                                className="px-3 py-1 rounded-full text-sm font-medium"
-                                style={{
-                                  background: '#e8f0ed',
-                                  color: '#6b8e7f',
-                                  border: '1px solid #6b8e7f40'
-                                }}
-                              >
-                                {strategy}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Notes */}
-                      {entry.notes && (
-                        <div 
-                          className="p-4 rounded-xl" 
-                          style={{ background: '#fafaf8', border: '2px solid #d4cfc4' }}
-                        >
-                          <p className="text-xs font-bold mb-2" style={{ color: '#9ca3af', letterSpacing: '0.05em' }}>
-                            NOTES
-                          </p>
-                          <p style={{ color: '#4a5568', lineHeight: '1.7', fontSize: '15px' }}>
-                            {entry.notes}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </Card>
-              );
-            })
           )}
+
+          {/* Mood + Date/Time */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+            <div>
+              <label style={lbl}>Mood</label>
+              <select style={{...inp,cursor:"pointer",textTransform:"capitalize"}} value={fd.mood} onChange={e=>set("mood",e.target.value)}>
+                {MOODS.map(m=><option key={m} value={m} style={{textTransform:"capitalize"}}>{m}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Date</label>
+              <input type="date" style={inp} value={fd.date} onChange={e=>set("date",e.target.value)}/>
+            </div>
+            <div>
+              <label style={lbl}>Time</label>
+              <input type="time" style={inp} value={fd.time} onChange={e=>set("time",e.target.value)}/>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label style={lbl}>Notes</label>
+            <textarea style={{...inp,resize:"vertical",minHeight:80,lineHeight:1.7}} placeholder="What happened? How did you feel? What helped?" value={fd.notes} onChange={e=>set("notes",e.target.value)}/>
+          </div>
+
+          <div style={{display:"flex",gap:10,paddingTop:4}}>
+            <button onClick={()=>onSave(fd)} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:7,padding:"13px",borderRadius:10,background:tc.color,border:"none",color:"#060810",fontSize:14,fontWeight:800,cursor:"pointer"}}>
+              <CheckCircle2 size={15}/>{initial?"Update Entry":"Save Entry"}
+            </button>
+            <button onClick={onClose} style={{padding:"13px 20px",borderRadius:10,background:"none",border:`1px solid ${C.border}`,color:C.muted,fontSize:13,cursor:"pointer"}}>Discard</button>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default GamblingAddictionTracker;
+// ─── Emergency Help Modal ─────────────────────────────────────────────────────
+const EmergencyModal = ({ onClose }) => (
+  <div style={{position:"fixed",inset:0,background:"#000d",zIndex:9500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+    <div style={{background:C.card,border:`2px solid ${C.relapse}`,borderRadius:20,width:"100%",maxWidth:480,padding:28}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <Phone size={20} color={C.relapse}/>
+          <p style={{fontSize:18,fontWeight:800,color:C.text,margin:0}}>Emergency Support</p>
+        </div>
+        <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:C.muted}}><X size={18}/></button>
+      </div>
+      <div style={{padding:"12px 14px",background:`${C.relapse}12`,border:`1px solid ${C.relapse}44`,borderRadius:10,marginBottom:16}}>
+        <p style={{fontSize:13,color:C.relapse,fontWeight:600,margin:0}}>If you're in crisis right now — help is available. You are not alone.</p>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {HOTLINES.map((h,i)=>(
+          <a key={i} href={`tel:${h.number}`} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,textDecoration:"none",transition:"border-color .15s"}}>
+            <div style={{width:36,height:36,borderRadius:9,background:`${C.victory}18`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <Phone size={16} color={C.victory}/>
+            </div>
+            <div style={{flex:1}}>
+              <p style={{fontSize:13,fontWeight:700,color:C.text,margin:0}}>{h.name}</p>
+              <p style={{fontSize:11,color:C.muted,margin:"2px 0 0",textTransform:"capitalize"}}>{h.type.replace("_"," ")}</p>
+            </div>
+            <p style={{fontSize:15,fontWeight:800,color:C.victory,margin:0,fontVariantNumeric:"tabular-nums"}}>{h.number}</p>
+          </a>
+        ))}
+      </div>
+      <p style={{fontSize:11,color:C.muted,textAlign:"center",marginTop:16}}>Recovery is possible. Every moment you reach out instead of gambling is a victory.</p>
+    </div>
+  </div>
+);
+
+// ─── Entry Card ───────────────────────────────────────────────────────────────
+const EntryCard = ({ entry, onEdit, onDelete }) => {
+  const [expanded, setExpanded] = useState(false);
+  const tc = getTypeConfig(entry.type);
+  const coping = entry.coping||entry.copingStrategies||[];
+  const triggers = entry.triggers||[];
+  return (
+    <div style={{background:C.card,border:`1px solid ${expanded?C.borderHi:C.border}`,borderRadius:16,overflow:"hidden",transition:"border-color .15s",borderLeft:`3px solid ${tc.color}`}}>
+      <div onClick={()=>setExpanded(e=>!e)} style={{display:"flex",alignItems:"flex-start",gap:14,padding:"16px 18px",cursor:"pointer"}}>
+        <div style={{width:44,height:44,borderRadius:12,background:tc.dim,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <tc.Icon size={20} color={tc.color}/>
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:5}}>
+            <span style={{fontSize:14,fontWeight:800,color:tc.color}}>{tc.label}</span>
+            <span style={{fontSize:11,color:C.muted}}>· {fmtDate(entry.date)} {entry.time}</span>
+            <span style={{fontSize:11,color:C.muted,textTransform:"capitalize"}}>· {entry.mood}</span>
+            {entry.daysClean>0&&<span style={{fontSize:11,fontWeight:700,color:C.gold,background:`${C.gold}15`,padding:"2px 8px",borderRadius:99,display:"flex",alignItems:"center",gap:3}}><Award size={10}/>{entry.daysClean}d clean</span>}
+          </div>
+          <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:entry.notes?6:0}}>
+            {entry.urgeIntensity>0&&<span style={{fontSize:12,color:C.muted}}>Urge: <b style={{color:C.relapse}}>{entry.urgeIntensity}/10</b></span>}
+            {entry.resistanceStrength>0&&<span style={{fontSize:12,color:C.muted}}>Resist: <b style={{color:C.victory}}>{entry.resistanceStrength}/10</b></span>}
+            {entry.moneyNotSpent>0&&<span style={{fontSize:12,color:C.muted}}>Saved: <b style={{color:C.sage}}>{fmtMoney(entry.moneyNotSpent)}</b></span>}
+            {entry.amountLost>0&&<span style={{fontSize:12,color:C.muted}}>Lost: <b style={{color:C.relapse}}>{fmtMoney(entry.amountLost)}</b></span>}
+          </div>
+          {entry.notes&&!expanded&&<p style={{fontSize:12,color:C.muted,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:400,fontStyle:"italic"}}>"{entry.notes}"</p>}
+        </div>
+        <div style={{display:"flex",gap:4,flexShrink:0}}>
+          <button onClick={e=>{e.stopPropagation();onEdit();}} style={{background:"none",border:"none",cursor:"pointer",color:C.muted,padding:"5px",borderRadius:6}}><Edit2 size={14}/></button>
+          <button onClick={e=>{e.stopPropagation();onDelete();}} style={{background:"none",border:"none",cursor:"pointer",color:C.relapse,padding:"5px",borderRadius:6}}><Trash2 size={14}/></button>
+          <div style={{padding:"5px",color:C.dim,display:"flex",alignItems:"center"}}>{expanded?<ChevronUp size={14}/>:<ChevronDown size={14}/>}</div>
+        </div>
+      </div>
+      {expanded&&(
+        <div style={{padding:"0 18px 18px",borderTop:`1px solid ${C.border}`}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14,marginTop:14}}>
+            {triggers.length>0&&(
+              <div>
+                <p style={{fontSize:10,fontWeight:700,color:C.dim,textTransform:"uppercase",letterSpacing:".07em",marginBottom:7}}>Triggers</p>
+                <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                  {triggers.map(t=><span key={t} style={{fontSize:11,padding:"3px 9px",borderRadius:99,background:`${C.relapse}15`,color:C.relapse,fontWeight:600}}>{t}</span>)}
+                </div>
+              </div>
+            )}
+            {coping.length>0&&(
+              <div>
+                <p style={{fontSize:10,fontWeight:700,color:C.dim,textTransform:"uppercase",letterSpacing:".07em",marginBottom:7}}>Coping Used</p>
+                <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                  {coping.map(s=><span key={s} style={{fontSize:11,padding:"3px 9px",borderRadius:99,background:`${C.victory}15`,color:C.victory,fontWeight:600}}>{s}</span>)}
+                </div>
+              </div>
+            )}
+            {entry.type==="relapse"&&(
+              <div>
+                <p style={{fontSize:10,fontWeight:700,color:C.dim,textTransform:"uppercase",letterSpacing:".07em",marginBottom:7}}>Relapse Details</p>
+                <p style={{fontSize:12,color:C.muted}}>Lost: <b style={{color:C.relapse}}>{fmtMoney(entry.amountLost)}</b> · Won: <b style={{color:C.victory}}>{fmtMoney(entry.amountWon)}</b> · Duration: <b style={{color:C.warning}}>{entry.duration}min</b></p>
+              </div>
+            )}
+          </div>
+          {entry.notes&&(
+            <div style={{marginTop:14,padding:"12px 14px",background:C.surface,borderRadius:10,border:`1px solid ${C.border}`}}>
+              <p style={{fontSize:10,fontWeight:700,color:C.dim,textTransform:"uppercase",letterSpacing:".07em",marginBottom:5}}>Notes</p>
+              <p style={{fontSize:13,color:C.muted,lineHeight:1.75,margin:0}}>{entry.notes}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════════════════════
+export default function GamblingAddictionTracker() {
+  const nextId = useRef(null);
+
+  const [entries, setEntries] = useState(() => {
+    try {
+      const s=localStorage.getItem("gat2_entries");
+      const p=s?JSON.parse(s):null;
+      if (Array.isArray(p)&&p.length) { nextId.current=Math.max(...p.map(e=>e.id))+1; return p; }
+    } catch {}
+    const seed=buildSeed(); nextId.current=seed.length+1; return seed;
+  });
+  useEffect(()=>{ try { localStorage.setItem("gat2_entries",JSON.stringify(entries)); } catch {} },[entries]);
+
+  const [tab,         setTab]         = useState("overview");
+  const [search,      setSearch]      = useState("");
+  const [period,      setPeriod]      = useState("all");
+  const [showModal,   setShowModal]   = useState(false);
+  const [editEntry,   setEditEntry]   = useState(null);
+  const [showEmerg,   setShowEmerg]   = useState(false);
+  const [confirm,     setConfirm]     = useState(null);
+  const [toast,       setToast]       = useState(null);
+
+  const push = (msg,type="success") => setToast({msg,type});
+
+  // ── Derived ─────────────────────────────────────────────────────────────
+  const daysClean = useMemo(() => {
+    const sorted = [...entries].sort((a,b)=>new Date(`${b.date} ${b.time}`)-new Date(`${a.date} ${a.time}`));
+    const lastR = sorted.find(e=>e.type==="relapse");
+    if (!lastR) {
+      const first = sorted[sorted.length-1];
+      return first ? daysBetween(new Date(first.date),new Date()) : 0;
+    }
+    return daysBetween(new Date(lastR.date),new Date());
+  }, [entries]);
+
+  const filtered = useMemo(() => {
+    const now = new Date();
+    return entries
+      .filter(e => {
+        if (period==="week")  return new Date(e.date)>=new Date(now.getTime()-7*864e5);
+        if (period==="month") return new Date(e.date)>=new Date(now.getTime()-30*864e5);
+        return true;
+      })
+      .filter(e => {
+        if (!search) return true;
+        const q=search.toLowerCase();
+        return e.notes?.toLowerCase().includes(q)||(e.triggers||[]).some(t=>t.toLowerCase().includes(q))||(e.coping||e.copingStrategies||[]).some(c=>c.toLowerCase().includes(q));
+      })
+      .sort((a,b)=>new Date(`${b.date} ${b.time}`)-new Date(`${a.date} ${a.time}`));
+  }, [entries, search, period]);
+
+  const stats = useMemo(() => {
+    const resisted  = filtered.filter(e=>e.type==="urge_resisted").length;
+    const relapses  = filtered.filter(e=>e.type==="relapse").length;
+    const closeCalls= filtered.filter(e=>e.type==="close_call").length;
+    const moneySaved= filtered.reduce((s,e)=>s+(e.moneyNotSpent||0),0);
+    const moneyLost = filtered.reduce((s,e)=>s+(e.amountLost||0),0);
+    const withUrge  = filtered.filter(e=>e.urgeIntensity);
+    const avgUrge   = withUrge.length ? +(withUrge.reduce((s,e)=>s+e.urgeIntensity,0)/withUrge.length).toFixed(1) : 0;
+    const rate      = resisted+relapses>0 ? +((resisted/(resisted+relapses))*100).toFixed(1) : 100;
+    return { resisted, relapses, closeCalls, moneySaved, moneyLost, avgUrge, rate, netSavings:moneySaved-moneyLost };
+  }, [filtered]);
+
+  // Chart data
+  const chartData = useMemo(() =>
+    [...filtered].reverse().slice(-14).map(e=>({
+      date:fmtShort(e.date),
+      urge:e.urgeIntensity||0,
+      resist:e.resistanceStrength||0,
+      type:e.type,
+    })), [filtered]);
+
+  const moneyData = useMemo(() =>
+    [...filtered].reverse().filter(e=>e.moneyNotSpent||e.amountLost).slice(-12).map(e=>({
+      date:fmtShort(e.date),
+      saved:e.moneyNotSpent||0,
+      lost:e.amountLost||0,
+    })), [filtered]);
+
+  const triggerFreq = useMemo(() => {
+    const c={};
+    filtered.forEach(e=>(e.triggers||[]).forEach(t=>{c[t]=(c[t]||0)+1;}));
+    return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  }, [filtered]);
+
+  const copingFreq = useMemo(() => {
+    const c={};
+    filtered.filter(e=>e.type!=="relapse").forEach(e=>{
+      (e.coping||e.copingStrategies||[]).forEach(s=>{c[s]=(c[s]||0)+1;});
+    });
+    return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  }, [filtered]);
+
+  const nextMilestone = MILESTONES.find(m=>m>daysClean)||365;
+  const milestoneProgress = Math.round((daysClean/nextMilestone)*100);
+
+  // ── Handlers ────────────────────────────────────────────────────────────
+  const saveEntry = useCallback(fd => {
+    const coping = fd.coping||fd.copingStrategies||[];
+    const payload = { ...fd, coping, copingStrategies:coping, daysClean:fd.type==="relapse"?0:daysClean };
+    if (editEntry) {
+      setEntries(prev=>prev.map(e=>e.id===editEntry.id?{...payload,id:editEntry.id}:e));
+      push("Entry updated");
+    } else {
+      setEntries(prev=>[{...payload,id:nextId.current++},...prev]);
+      push(fd.type==="urge_resisted"?"🛡 Urge resisted! Logged.":fd.type==="close_call"?"⚡ Close call logged.":"Entry saved");
+    }
+    setShowModal(false); setEditEntry(null);
+  }, [editEntry, daysClean]);
+
+  const delEntry = useCallback((id,date) => {
+    setConfirm({msg:`Delete the entry from ${fmtDate(date)}?`,onOk:()=>{
+      setEntries(prev=>prev.filter(e=>e.id!==id));
+      setConfirm(null); push("Entry deleted","error");
+    }});
+  }, []);
+
+  const exportJSON = () => {
+    const blob=new Blob([JSON.stringify(entries,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=`recovery-data-${todayStr()}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    push("Data exported");
+  };
+
+  const downloadReport = () => {
+    const sep="─".repeat(60);
+    const lines=[
+      "GAMBLING RECOVERY TRACKER — PROGRESS REPORT",sep,
+      `Generated: ${new Date().toLocaleString()}`,
+      `Days Clean: ${daysClean} | Resistance Rate: ${stats.rate}%`,
+      `Urges Resisted: ${stats.resisted} | Relapses: ${stats.relapses}`,
+      `Money Saved: ${fmtMoney(stats.moneySaved)} | Net: ${fmtMoney(stats.netSavings)}`,
+      "",sep,"TOP TRIGGERS",sep,
+      ...triggerFreq.map(([t,c])=>`  ${t}: ${c}×`),
+      "",sep,"MOST EFFECTIVE COPING",sep,
+      ...copingFreq.map(([s,c])=>`  ${s}: ${c}×`),
+      "",sep,"ENTRIES",sep,
+      ...filtered.map(e=>[
+        `\n${fmtDate(e.date)} ${e.time}  [${e.type.replace("_"," ").toUpperCase()}]  mood: ${e.mood}`,
+        e.urgeIntensity?`  Urge: ${e.urgeIntensity}/10  Resistance: ${(e.resistanceStrength||0)}/10`:"",
+        e.moneyNotSpent?`  Saved: ${fmtMoney(e.moneyNotSpent)}`:"",
+        e.amountLost?`  Lost: ${fmtMoney(e.amountLost)}`:"",
+        (e.triggers||[]).length?`  Triggers: ${(e.triggers||[]).join(", ")}`:"",
+        e.notes?`  Notes: ${e.notes}`:"",
+      ].filter(Boolean).join("\n"))
+    ];
+    const blob=new Blob([lines.join("\n")],{type:"text/plain"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=`recovery-report-${todayStr()}.txt`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    push("Report downloaded");
+  };
+
+  const TABS = [
+    {k:"overview", label:"Overview", icon:Activity},
+    {k:"trends",   label:"Trends",   icon:BarChart3},
+    {k:"journal",  label:"Journal",  icon:List},
+    {k:"insights", label:"AI Insights",icon:Brain},
+  ];
+
+  const fmtBtn = (active=false, col=C.victory) => ({
+    display:"inline-flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:9,
+    fontSize:12,fontWeight:700,cursor:"pointer",
+    background:active?col:"none",border:active?"none":`1px solid ${C.border}`,
+    color:active?"#060810":C.muted,transition:"all .15s",
+  });
+
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,color:C.text,fontFamily:"'DM Sans','Nunito',system-ui,sans-serif"}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;}
+        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:${C.bg};}::-webkit-scrollbar-thumb{background:${C.border};border-radius:2px;}
+        input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:pointer;}
+        select option{background:${C.card};color:${C.text};}
+        input::placeholder,textarea::placeholder{color:${C.dim};}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        @keyframes slideUp{from{transform:translateY(10px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .tabBtn:hover{background:${C.cardHi}!important;}
+        .cardHov:hover{border-color:${C.borderHi}!important;}
+      `}</style>
+
+      {/* ── Nav ── */}
+      <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:0}}>
+        <div style={{maxWidth:940,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",gap:16}}>
+          <div style={{padding:"13px 0",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+            <div style={{width:34,height:34,borderRadius:9,background:`${C.victory}18`,border:`1px solid ${C.victory}44`,display:"flex",alignItems:"center",justifyContent:"center"}}><Shield size={17} color={C.victory}/></div>
+            <div>
+              <p style={{fontSize:14,fontWeight:800,color:C.text,letterSpacing:"-0.4px",lineHeight:1}}>RecoveryTrack</p>
+              <p style={{fontSize:9,color:C.muted,letterSpacing:".06em"}}>GAMBLING RECOVERY</p>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:2,flex:1,overflowX:"auto"}}>
+            {TABS.map(({k,label,icon:Icon})=>(
+              <button key={k} className="tabBtn" onClick={()=>setTab(k)} style={{display:"flex",alignItems:"center",gap:6,padding:"13px 14px",background:"none",border:"none",cursor:"pointer",fontSize:12,fontWeight:600,color:tab===k?C.victory:C.muted,borderBottom:`2px solid ${tab===k?C.victory:"transparent"}`,transition:"all .18s",whiteSpace:"nowrap"}}>
+                <Icon size={13}/>{label}
+              </button>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:6,flexShrink:0}}>
+            <button onClick={downloadReport} style={fmtBtn()}><FileText size={13}/></button>
+            <button onClick={exportJSON} style={fmtBtn()}><Download size={13}/></button>
+            <button onClick={()=>setShowEmerg(true)} style={{...fmtBtn(false),color:C.relapse,borderColor:`${C.relapse}44`,background:`${C.relapse}0c`}}><Phone size={13}/>SOS</button>
+            <button onClick={()=>{setEditEntry(null);setShowModal(true);}} style={fmtBtn(true,C.victory)}><Plus size={14}/>Log Entry</button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div style={{maxWidth:940,margin:"0 auto",padding:"24px 16px 80px"}}>
+
+        {/* KPI strip — always visible */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:12,marginBottom:22}}>
+          {/* Streak ring card */}
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:"16px",display:"flex",flexDirection:"column",alignItems:"center",gap:6,gridRow:"1/3"}}>
+            <StreakRing days={daysClean}/>
+            <p style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",textAlign:"center"}}>Next: {nextMilestone}d</p>
+            <div style={{width:"100%",height:5,background:C.border,borderRadius:99,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${milestoneProgress}%`,background:C.gold,borderRadius:99,transition:"width .6s ease"}}/>
+            </div>
+          </div>
+          {[
+            {label:"Resistance Rate", value:`${stats.rate}%`,    sub:`${stats.resisted} urges beaten`, color:C.victory, Icon:Shield},
+            {label:"Money Saved",     value:fmtMoney(stats.moneySaved), sub:"by not gambling",         color:C.sage,    Icon:DollarSign},
+            {label:"Net Savings",     value:fmtMoney(Math.abs(stats.netSavings)), sub:stats.netSavings>=0?"ahead":"lost in relapses", color:stats.netSavings>=0?C.sage:C.relapse, Icon:stats.netSavings>=0?TrendingUp:TrendingDown},
+            {label:"Avg Urge",        value:`${stats.avgUrge}/10`, sub:"urge intensity",                color:C.warning, Icon:Flame},
+            {label:"Relapses",        value:stats.relapses,       sub:`${stats.closeCalls} close calls`,color:stats.relapses===0?C.victory:C.relapse, Icon:AlertTriangle},
+          ].map(({label,value,sub,color,Icon})=>(
+            <div key={label} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:"14px 16px",position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",right:10,top:10,opacity:.07}}><Icon size={36}/></div>
+              <p style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:6}}>{label}</p>
+              <p style={{fontSize:22,fontWeight:800,color,letterSpacing:"-0.5px",margin:0}}>{value}</p>
+              <p style={{fontSize:10,color:C.dim,marginTop:4}}>{sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ═══ OVERVIEW ═══ */}
+        {tab==="overview"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:18,animation:"fadeIn .3s ease"}}>
+            {/* Mini urge/resistance chart */}
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:"20px 16px 12px"}}>
+              <p style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:4}}>Urge vs Resistance — 14 entries</p>
+              <p style={{fontSize:11,color:C.muted,marginBottom:14}}>Higher resistance than urge = stronger recovery</p>
+              <ResponsiveContainer width="100%" height={180}>
+                <LineChart data={chartData} margin={{top:4,right:6,left:-24,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
+                  <XAxis dataKey="date" tick={{fill:C.muted,fontSize:10}} stroke={C.border} tickLine={false}/>
+                  <YAxis tick={{fill:C.muted,fontSize:10}} stroke={C.border} tickLine={false} domain={[0,10]}/>
+                  <Tooltip content={<VTooltip/>}/>
+                  <ReferenceLine y={5} stroke={C.dim} strokeDasharray="4 3"/>
+                  <Line type="monotone" dataKey="urge"   name="Urge"       stroke={C.relapse} strokeWidth={2} dot={{fill:C.relapse,r:3,strokeWidth:0}} activeDot={{r:5}}/>
+                  <Line type="monotone" dataKey="resist" name="Resistance" stroke={C.victory} strokeWidth={2.5} dot={{fill:C.victory,r:3,strokeWidth:0}} activeDot={{r:5}}/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Top triggers + top coping */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+              <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:20}}>
+                <p style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><AlertTriangle size={14} color={C.warning}/>Top Triggers</p>
+                {triggerFreq.length===0?<p style={{color:C.muted,fontSize:13}}>No triggers logged yet.</p>:
+                  triggerFreq.map(([t,c])=>(
+                    <div key={t} style={{marginBottom:10}}>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                        <span style={{fontSize:12,color:C.muted}}>{t}</span>
+                        <span style={{fontSize:12,fontWeight:700,color:C.warning}}>{c}×</span>
+                      </div>
+                      <div style={{height:5,background:C.border,borderRadius:99,overflow:"hidden"}}>
+                        <div style={{height:"100%",width:`${(c/filtered.length)*100}%`,background:C.warning,borderRadius:99}}/>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+              <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:20}}>
+                <p style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><CheckCircle2 size={14} color={C.victory}/>Effective Coping</p>
+                {copingFreq.length===0?<p style={{color:C.muted,fontSize:13}}>No coping strategies logged yet.</p>:
+                  copingFreq.map(([s,c])=>(
+                    <div key={s} style={{marginBottom:10}}>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                        <span style={{fontSize:12,color:C.muted}}>{s}</span>
+                        <span style={{fontSize:12,fontWeight:700,color:C.victory}}>{c}×</span>
+                      </div>
+                      <div style={{height:5,background:C.border,borderRadius:99,overflow:"hidden"}}>
+                        <div style={{height:"100%",width:`${Math.min((c/stats.resisted)*100,100)}%`,background:C.victory,borderRadius:99}}/>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+
+            {/* Milestones */}
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:20}}>
+              <p style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><Star size={14} color={C.gold}/>Recovery Milestones</p>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {MILESTONES.map(m=>{
+                  const achieved=daysClean>=m;
+                  return (
+                    <div key={m} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 14px",borderRadius:10,background:achieved?`${C.gold}18`:C.surface,border:`1px solid ${achieved?C.gold:C.border}`,transition:"all .2s",minWidth:56}}>
+                      <span style={{fontSize:20}}>{achieved?"🏆":"🔒"}</span>
+                      <span style={{fontSize:11,fontWeight:700,color:achieved?C.gold:C.dim}}>{m}d</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ TRENDS ═══ */}
+        {tab==="trends"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:18,animation:"fadeIn .3s ease"}}>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:"20px 16px 12px"}}>
+              <p style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:4}}>Urge vs Resistance Trend</p>
+              <p style={{fontSize:11,color:C.muted,marginBottom:16}}>Goal: resistance consistently above urge intensity</p>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={chartData} margin={{top:6,right:6,left:-24,bottom:0}}>
+                  <defs>
+                    <linearGradient id="urgeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={C.relapse} stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor={C.relapse} stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="resGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={C.victory} stopOpacity={0.25}/>
+                      <stop offset="95%" stopColor={C.victory} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
+                  <XAxis dataKey="date" tick={{fill:C.muted,fontSize:10}} stroke={C.border} tickLine={false}/>
+                  <YAxis tick={{fill:C.muted,fontSize:10}} stroke={C.border} tickLine={false} domain={[0,10]}/>
+                  <Tooltip content={<VTooltip/>}/>
+                  <Legend wrapperStyle={{fontSize:11,color:C.muted}}/>
+                  <Area type="monotone" dataKey="urge"   name="Urge"       stroke={C.relapse} strokeWidth={2} fill="url(#urgeGrad)" dot={{fill:C.relapse,r:3,strokeWidth:0}}/>
+                  <Area type="monotone" dataKey="resist" name="Resistance" stroke={C.victory} strokeWidth={2} fill="url(#resGrad)"  dot={{fill:C.victory,r:3,strokeWidth:0}}/>
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:"20px 16px 12px"}}>
+              <p style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:4}}>Financial Impact</p>
+              <p style={{fontSize:11,color:C.muted,marginBottom:16}}>₦ saved by resisting vs ₦ lost in relapses</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={moneyData} margin={{top:4,right:6,left:-20,bottom:0}} barSize={16}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false}/>
+                  <XAxis dataKey="date" tick={{fill:C.muted,fontSize:10}} stroke={C.border} tickLine={false}/>
+                  <YAxis tick={{fill:C.muted,fontSize:9}} stroke={C.border} tickLine={false} tickFormatter={v=>v>=1000?`₦${v/1000}k`:`₦${v}`}/>
+                  <Tooltip content={<VTooltip/>}/>
+                  <Legend wrapperStyle={{fontSize:11,color:C.muted}}/>
+                  <Bar dataKey="saved" name="Saved (₦)" fill={C.victory} radius={[3,3,0,0]}/>
+                  <Bar dataKey="lost"  name="Lost (₦)"  fill={C.relapse} radius={[3,3,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ JOURNAL ═══ */}
+        {tab==="journal"&&(
+          <div style={{animation:"fadeIn .3s ease"}}>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:16,alignItems:"center"}}>
+              <div style={{position:"relative",flex:1,minWidth:200}}>
+                <Search size={14} color={C.muted} style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)"}}/>
+                <input style={{width:"100%",background:C.card,border:`1.5px solid ${C.border}`,borderRadius:10,padding:"9px 12px 9px 32px",color:C.text,fontSize:13,outline:"none"}} placeholder="Search entries…" value={search} onChange={e=>setSearch(e.target.value)}/>
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                {[["all","All Time"],["week","7 Days"],["month","30 Days"]].map(([k,l])=>(
+                  <button key={k} onClick={()=>setPeriod(k)} style={{padding:"8px 14px",borderRadius:99,fontSize:12,fontWeight:700,cursor:"pointer",border:`1.5px solid ${period===k?C.victory:C.border}`,background:period===k?`${C.victory}14`:C.card,color:period===k?C.victory:C.muted}}>{l}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {filtered.length===0?(
+                <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:"52px 24px",textAlign:"center"}}>
+                  <Shield size={44} color={C.dim} style={{marginBottom:14}}/>
+                  <p style={{color:C.muted,fontSize:14}}>{search?"No entries match your search.":"No entries yet — start tracking your recovery."}</p>
+                  {!search&&<button onClick={()=>{setEditEntry(null);setShowModal(true);}} style={{marginTop:18,padding:"10px 24px",borderRadius:10,background:C.victory,border:"none",color:"#060810",fontWeight:700,fontSize:13,cursor:"pointer"}}>+ Log First Entry</button>}
+                </div>
+              ):filtered.map(e=>(
+                <EntryCard key={e.id} entry={e} onEdit={()=>{setEditEntry(e);setShowModal(true);}} onDelete={()=>delEntry(e.id,e.date)}/>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ AI INSIGHTS ═══ */}
+        {tab==="insights"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:16,animation:"fadeIn .3s ease"}}>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:22}}>
+              <p style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:4}}>Recovery Summary</p>
+              <p style={{fontSize:12,color:C.muted,marginBottom:16}}>Key metrics feeding the AI analysis</p>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12}}>
+                {[
+                  {l:"Days Clean",        v:daysClean,          c:C.gold},
+                  {l:"Resistance Rate",   v:`${stats.rate}%`,   c:C.victory},
+                  {l:"Urges Resisted",    v:stats.resisted,     c:C.sapphire},
+                  {l:"Net Saved",         v:fmtMoney(stats.netSavings), c:stats.netSavings>=0?C.sage:C.relapse},
+                ].map(({l,v,c})=>(
+                  <div key={l} style={{background:C.cardHi,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px"}}>
+                    <p style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".07em",marginBottom:5}}>{l}</p>
+                    <p style={{fontSize:20,fontWeight:800,color:c,margin:0,letterSpacing:"-0.5px"}}>{v}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <AIInsights entries={entries}/>
+            {/* Resources */}
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:22}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+                <div style={{width:36,height:36,borderRadius:10,background:`${C.sapphire}18`,display:"flex",alignItems:"center",justifyContent:"center"}}><BookOpen size={16} color={C.sapphire}/></div>
+                <p style={{fontSize:14,fontWeight:700,color:C.text}}>Recovery Resources & Affirmations</p>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                {[
+                  "Every day clean is a victory worth celebrating.",
+                  "A relapse is not the end — it's information for your recovery.",
+                  "The urge will pass. It always does. Wait it out.",
+                  "You are more than your addiction. Your recovery defines you.",
+                  "Each time you resist, you rewire your brain for strength.",
+                  "Reach out before you act — that call could change everything.",
+                ].map((q,i)=>(
+                  <div key={i} style={{padding:"12px 14px",background:C.surface,borderRadius:10,border:`1px solid ${C.border}`}}>
+                    <p style={{fontSize:12,color:C.muted,lineHeight:1.65,margin:0,fontStyle:"italic"}}>"{q}"</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* FAB */}
+      <button onClick={()=>{setEditEntry(null);setShowModal(true);}}
+        style={{position:"fixed",bottom:28,right:24,width:52,height:52,borderRadius:"50%",background:C.victory,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 0 24px ${C.victory}55`,zIndex:40,transition:"transform .15s"}}
+        onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+        <Plus size={22} color="#060810" strokeWidth={2.5}/>
+      </button>
+
+      {showModal&&<EntryModal initial={editEntry} daysClean={daysClean} onSave={saveEntry} onClose={()=>{setShowModal(false);setEditEntry(null);}}/>}
+      {showEmerg&&<EmergencyModal onClose={()=>setShowEmerg(false)}/>}
+      {confirm&&<Confirm msg={confirm.msg} onOk={confirm.onOk} onCancel={()=>setConfirm(null)}/>}
+      {toast&&<Toast msg={toast.msg} type={toast.type} onDone={()=>setToast(null)}/>}
+    </div>
+  );
+}
